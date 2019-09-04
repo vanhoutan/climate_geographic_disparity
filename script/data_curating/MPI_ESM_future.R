@@ -4,6 +4,8 @@ library(tidyverse)  # data tidying
 library(ncdf4)
 library(colorRamps)
 
+#this is a test
+
 # How to start ESGF - https://pcmdi.llnl.gov/mips/cmip5/data-access-getting-started.html
 # Searching and downloading ESGF products - https://esgf-node.llnl.gov/projects/cmip5/
 # I'm hosting these files locally currently, they are not huge, but we will need to figure out an easy way to host and collectively work on them.
