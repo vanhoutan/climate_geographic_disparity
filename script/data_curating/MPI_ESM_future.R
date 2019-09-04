@@ -4,7 +4,6 @@ library(tidyverse)  # data tidying
 library(ncdf4)
 library(colorRamps)
 
-#this is a test
 
 # How to start ESGF - https://pcmdi.llnl.gov/mips/cmip5/data-access-getting-started.html
 # Searching and downloading ESGF products - https://esgf-node.llnl.gov/projects/cmip5/
