@@ -124,13 +124,13 @@ eez <- intersection_land_eez %>%
          lower.ci = median - qt(1 - (0.05 / 2), n - 1) * se,
          upper.ci = median + qt(1 - (0.05 / 2), n - 1) * se)
 
-biome <- biome %>% st_set_geometry(NULL) # drop geometry
-realm <- realm %>% st_set_geometry(NULL) # drop geometry
-earth <- earth %>% st_set_geometry(NULL) # drop geometry
-states <- states %>% st_set_geometry(NULL) # drop geometry
-subr <- subr %>% st_set_geometry(NULL) # drop geometry
-country <- country %>% st_set_geometry(NULL) # drop geometry
-eez <- eez %>% st_set_geometry(NULL) # drop geometry
+biome = biome %>% st_set_geometry(NULL) # drop geometry
+realm = realm %>% st_set_geometry(NULL) # drop geometry
+earth = earth %>% st_set_geometry(NULL) # drop geometry
+states = states %>% st_set_geometry(NULL) # drop geometry
+subr = subr %>% st_set_geometry(NULL) # drop geometry
+country = country %>% st_set_geometry(NULL) # drop geometry
+eez = eez %>% st_set_geometry(NULL) # drop geometry
 
 # ecoregions
 colnames(realm)[colnames(realm)=="REALM"] <- "BIOME"
