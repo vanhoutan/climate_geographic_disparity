@@ -21,15 +21,16 @@ for(each_year in 1:length(year)){
            ymn= -90, ymx= 90, 
            crs=CRS("+proj=longlat +datum=WGS84"))
   
-  png(paste0("/Users/ktanaka/Desktop/","CO2_", year[each_year],".png"),
-      width = 800, 
-      height = 800
-  )
+  png(paste0("/Users/ktanaka/Desktop/","CO2_", year[each_year],".png"), width = 800, height = 500)
   
-  levelplot((one_year + 1 ), 
-            zscaleLog = T,
-            xlab = year[each_year] %>% as.character() ,
-            ylab = NULL) %>% print()
+  # levelplot((one_year + 1 ), 
+  #           zscaleLog = T,
+  #           xlab = year[each_year] %>% as.character() ,
+  #           ylab = NULL) %>% print()
+  
+  plot(log10(one_year), col = matlab.like(100), zlim = c(-10,0))
+  map(add = T)
+  legend("bottomleft", legend = year[each_year], bty = "n")
   
   #ann_sum <- cellStats(one_year, sum)
   
@@ -41,7 +42,7 @@ for(each_year in 1:length(year)){
 }
 
 # Step 2: List those Plots, Read them in, and then make animation
-list.files(path = "/Users/tgagne/Desktop/CO2_gif/", 
+list.files(path = "/Users/ktanaka/Desktop/CO2_gif/", 
            pattern = "*.png", 
            full.names = T) %>% 
   map(image_read) %>% # reads each path file
