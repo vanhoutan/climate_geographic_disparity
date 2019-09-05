@@ -59,26 +59,44 @@ stack('/Users/tgagne/Downloads/MERRA2_100.tavgM_2d_chm_Nx.198001.nc4')
 # ##############################################################
 # # for loop to build a time series of anthropogenic emissions #
 # ##############################################################
-# GHG_ts <- list.files('./data/causes/GHGs', pattern = '\\.nc4$')   # list all files in the MERRA model folder
-# GHG_ts <- paste0("./data/causes/GHGs/",GHG_ts)                    # add parent directories
-# 
-# emissions <- c("OCEMAN","BCEMAN","SO2EMAN","SO4EMAN")
-# 
-# for(gas in 4){# in 1:length(emissions)){
-#   ts_BCE <- raster::stack()                                         # build an empty stack to put the desired emission metric in to
-# 
-#   for( each_month_year_raster in 1:length(GHG_ts)){                                                 # for each file that is year in a month
-#   filename <- GHG_ts[each_month_year_raster]                                           # pull the first file,first year
-#   year_month_read <- stack(filename, varname = emissions[gas])                               # read it in as a raster
-#   names(year_month_read) <- paste0(emissions[gas],"_", gsub(".*Nx.\\s*|.nc4.*", "", filename))  # generate name: Emission_yearmonth
-#   print(names(year_month_read))                                                        # print in the loop to keep an eye on progress
-#   #plot(year_month_read, col = viridis::viridis(10), main = names(year_month_read))
-#   ts_BCE <- stack(ts_BCE,year_month_read)                                              # add to the timeseries stack
-#   }
-#   plot(sum(ts_BCE))
-# #writeRaster(sum(ts_BCE), paste0("./data/causes/GHG_ts_products/",emissions[gas],"_",date() %>% substr(5,10),".grd"), format="raster", overwrite=TRUE)
-# }
-# 
+GHG_ts <- list.files('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$') # list all files in the MERRA model folder
+GHG_ts <- paste0("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs/", GHG_ts) # add parent directories
+
+emissions <- c("OCEMAN","BCEMAN","SO2EMAN","SO4EMAN")[2]
+
+for(gas in 4){# in 1:length(emissions)){
+  
+  ts_BCE <- raster::stack() # build an empty stack to put the desired emission metric in to
+  
+  for( each_month_year_raster in 1:length(GHG_ts)){ # for each file that is year in a month
+  
+    filename <- GHG_ts[each_month_year_raster] # pull the first file,first year
+    
+    # year_month_read <- stack(filename, varname = emissions[gas]) # read it in as a raster
+    # names(year_month_read) <- paste0(emissions[gas],"_", gsub(".*Nx.\\s*|.nc4.*", "", filename)) # generate name: Emission_yearmonth
+    #plot(year_month_read, col = viridis::viridis(10), main = names(year_month_read))
+    
+    year_month_read <- stack(filename, varname = emissions) # read it in as a raster
+    names(year_month_read) <- paste0(emissions,"_", gsub(".*Nx.\\s*|.nc4.*", "", filename)) # generate name: Emission_yearmonth
+    print(names(year_month_read)) # print in the loop to keep an eye on progress
+    ts_BCE <- stack(ts_BCE,year_month_read) # add to the timeseries stack
+  
+  }
+  
+  plot(sum(ts_BCE))
+
+  # writeRaster(sum(ts_BCE), paste0("./data/causes/GHG_ts_products/",emissions[gas],"_",date() %>% substr(5,10),".grd"), format="raster", overwrite=TRUE)
+  
+  writeRaster(sum(ts_BCE),
+              paste0("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/",
+                     emissions[gas], "_", date() %>% substr(5,10), ".grd"),
+              format = "raster",
+              overwrite = TRUE)
+  
+  # sum_ts_BCE = sum(ts_BCE)
+  # save.image("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/ts_BCE_198001_201811.RData")
+}
+
 ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/OCEMAN_sum_Jan 31.grd") #%>% plot(col = matlab.like(100))
 ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot(col = matlab.like(100))
 ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/SO4EMAN_Jan 31.grd") #%>% plot(col = matlab.like(100))
