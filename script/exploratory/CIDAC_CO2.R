@@ -3,6 +3,8 @@ library(tidyverse)
 library(viridis)
 library(rasterVis)
 library(magick)
+library(colorRamps)
+library(maps)
 
 year <- 1751:2013
 #dev.new()
@@ -23,17 +25,15 @@ for(each_year in 1:length(year)){
   
   png(paste0("/Users/ktanaka/Desktop/","CO2_", year[each_year],".png"), width = 800, height = 500)
   
-  # levelplot((one_year + 1 ), 
-  #           zscaleLog = T,
-  #           xlab = year[each_year] %>% as.character() ,
-  #           ylab = NULL) %>% print()
-  
-  plot(log10(one_year), col = matlab.like(100), zlim = c(-10,0))
+  plot(log10(one_year), col = matlab.like(100), pch = ".", zlim = c(-10,0))
   map(add = T)
   legend("bottomleft", legend = year[each_year], bty = "n")
   
+  # levelplot((one_year + 1 ),
+  #           zscaleLog = T,
+  #           xlab = year[each_year] %>% as.character() ,
+  #           ylab = NULL) %>% print()
   #ann_sum <- cellStats(one_year, sum)
-  
   #points(year[each_year],ann_sum, cex = .2)
   
   print(year[each_year])
@@ -48,12 +48,10 @@ list.files(path = "/Users/ktanaka/Desktop/CO2_gif/",
   map(image_read) %>% # reads each path file
   image_join() %>% # joins image
   image_animate(fps=10) %>% # animates, can opt for number of loops
-  image_write("/Users/tgagne/Desktop/CO2_gif/ndwi_aug_hgm.gif") # write to current dir
-
+  image_write("/Users/ktanaka/Desktop/CO2_gif/ndwi_aug_hgm.gif") # write to current dir
 
 ## Using ImageMagick: Set working dir first to images
-system(command= "convert /Users/tgagne/Desktop/CO2_gif/* -delay 100 -loop 0 /Users/tgagne/Desktop/CO2_gif/cdec_snow_IM.gif")
-
+system(command= "convert /Users/ktanaka/Desktop/CO2_gif/* -delay 100 -loop 0 /Users/ktanaka/Desktop/CO2_gif/cdec_snow_IM.gif")
 
 # play with -delay as necessary, this is much faster than the fps in "magick"
 
@@ -75,15 +73,5 @@ for(each_year in 1:length(year)){
   year_name <- paste0('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/CIDAC_CO2/gridcar/gridfiles/gridcar.',year[each_year])
   
   one_year <- read.table(year_name) %>% sum()
-  
-  
-  
+ 
 }
-
-
-
-
-
-
-
-

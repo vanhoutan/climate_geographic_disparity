@@ -15,7 +15,7 @@ library(maps)
 library(ggpubr)
 library(sp)
 
-setwd("~/Desktop/climate/climate_disp_2019-master/data_output")
+setwd("~/clim_geo_disp/output/")
 
 #  Popular ggPlot theme  #
 theme_themeo <- function () { 
@@ -130,6 +130,7 @@ xy_plot <-
   scale_y_continuous(expand = c(0,0))+
   coord_fixed(ratio = 1/slope)+
   theme_themeo()
+
 xy_plot
 
 # spatial plot

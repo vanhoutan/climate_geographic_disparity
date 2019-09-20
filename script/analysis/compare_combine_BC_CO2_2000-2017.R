@@ -109,8 +109,8 @@ ggplot(df %>% sample_frac(1)) +
 
 # match BC and CO2 layers -------------------------------------------------
 
-load("/Users/ktanaka/Desktop/ODIAC_CO2_2000-2017_Stacked.RData")
-load("/Users/ktanaka/Desktop/MERRA2_BCEMAN_2000_2017_Stacked.RData")
+load("/Users/ktanaka/clim_geo_disp/output/ODIAC_CO2_2000-2017_Stacked.RData")
+load("/Users/ktanaka/clim_geo_disp/output/MERRA2_BCEMAN_2000_2017_Stacked.RData")
 
 bce = mean(total_bc)
 co2 = mean(odiac)
@@ -140,4 +140,8 @@ plot(log10(co2), col = matlab.like(100), zlim = c(-50,1), main = "Fossil fuel CO
 plot(log(sum(bce_1deg_g_adj, co2)), col = matlab.like(100), zlim = c(-50,1), main = "Adjusted BCE + CO2 log10(g/m-2)"); map(add = T)
 
 plot(log10(stack(bce_1deg_g_adj, co2)), zlim = c(-22, 1), col = matlab.like(100))
+
+#combine
+bco2 = sum(bce_1deg_g_adj, co2)
+plot(log10(bco2), col = matlab.like(100))
 

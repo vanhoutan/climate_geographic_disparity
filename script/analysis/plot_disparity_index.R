@@ -28,20 +28,16 @@ theme_themeo <- function () {
 # I'm navigating the options of developing a ratio of emissions to anomaly.
 # I think we'll get closer if we clearly define what it is that we want as a final product. Rather
 # than develop a bunch of products that are not quite what we want. 
-# 
+
 # What do we want?
-# 1. We want to define what regions are contributing emissions to climate change but do not expect to 
-# see much. 
-# 2. And in contrast, what areas will see lots of climate change, but are not contributing lots of
-# emissions? 
-# 3. And in between, what areas generate some emissions and will see some change. Or, wont see
-# change and are not emitting emissions.
+# 1. We want to define what regions are contributing emissions to climate change but do not expect to see much. 
+# 2. And in contrast, what areas will see lots of climate change, but are not contributing lots of emissions? 
+# 3. And in between, what areas generate some emissions and will see some change. Or, wont see change and are not emitting emissions.
 
 # What would this look like in the ideal ratio?
 # 1. Areas that generate lots of emissions and wont see much change will be > 1
 # 2. Areas that generate little emissions but will see lots of change will be < 1
 # 3. Areas seeing some change and emit some will be close to 1
-
 
 # What are the tools, transformations, and questions to consider when developing this metric?
 # 1. Are negative anomalies a good thing? Or is any anomally a bad thing? 
@@ -52,10 +48,10 @@ theme_themeo <- function () {
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 # black carbon emissions
-ts_BCE <- raster("./data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot()
+ts_BCE <- raster("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot()
 
 # climate anomaly data
-anomaly <- stack("./data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp85"]]
+anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp85"]]
 anomaly <- spatial_sync_raster(anomaly,ts_BCE,method = "ngb", size_only = FALSE, verbose = T)
 anomaly <- abs(anomaly) # make absolute or not absolute anomally
 

@@ -4,7 +4,8 @@ library(sf)
 library(forcats)
 library(ggpubr)
 
-load("~/Desktop/climate/climate_disp_2019-master/data_output/intersection_result_rcp85_untrimmed.RData")
+load("~/clim_geo_disp/output/intersection_result_BCO2.RData")
+load("~/clim_geo_disp/output/intersection_result_rcp85_untrimmed.RData")
 
 intersection_biome$disparity = scale(intersection_biome$disparity)
 intersection_realm$disparity = scale(intersection_realm$disparity)
@@ -13,24 +14,24 @@ intersection_world$disparity = scale(intersection_world$disparity)
 intersection_land_eez$disparity = scale(intersection_land_eez$disparity)
 earth$disparity = scale(earth$disparity)
 
-#just some convenient category for countries
-g1 = names(table(subset(intersection_world, continent == "Africa")$geounit))
-g2 = names(table(subset(intersection_world, continent == "Antarctica")$geounit))
-g3 = names(table(subset(intersection_world, continent == "Asia")$geounit))
-g4 = names(table(subset(intersection_world, continent == "Europe")$geounit))
-g5 = names(table(subset(intersection_world, continent == "North America")$geounit))
-g6 = names(table(subset(intersection_world, continent == "Oceania")$geounit))
-g7 = names(table(subset(intersection_world, continent == "South America")$geounit))
-g8 = names(table(subset(intersection_world, continent == "Seven seas (open ocean)")$geounit))
-
-#just some convenient category for countries
-g1 = names(table(subset(intersection_world, continent == "Africa")$geounit))
-g2 = names(table(subset(intersection_world, continent == "Americas")$geounit))
-g3 = names(table(subset(intersection_world, continent == "Antarctica")$geounit))
-g4 = names(table(subset(intersection_world, continent == "Asia")$geounit))
-g5 = names(table(subset(intersection_world, continent == "Europe")$geounit))
-g6 = names(table(subset(intersection_world, continent == "Oceania")$geounit))
-g7 = names(table(subset(intersection_world, continent == "Seven seas (open ocean)")$geounit))
+# #just some convenient category for countries
+# g1 = names(table(subset(intersection_world, continent == "Africa")$geounit))
+# g2 = names(table(subset(intersection_world, continent == "Antarctica")$geounit))
+# g3 = names(table(subset(intersection_world, continent == "Asia")$geounit))
+# g4 = names(table(subset(intersection_world, continent == "Europe")$geounit))
+# g5 = names(table(subset(intersection_world, continent == "North America")$geounit))
+# g6 = names(table(subset(intersection_world, continent == "Oceania")$geounit))
+# g7 = names(table(subset(intersection_world, continent == "South America")$geounit))
+# g8 = names(table(subset(intersection_world, continent == "Seven seas (open ocean)")$geounit))
+# 
+# #just some convenient category for countries
+# g1 = names(table(subset(intersection_world, continent == "Africa")$geounit))
+# g2 = names(table(subset(intersection_world, continent == "Americas")$geounit))
+# g3 = names(table(subset(intersection_world, continent == "Antarctica")$geounit))
+# g4 = names(table(subset(intersection_world, continent == "Asia")$geounit))
+# g5 = names(table(subset(intersection_world, continent == "Europe")$geounit))
+# g6 = names(table(subset(intersection_world, continent == "Oceania")$geounit))
+# g7 = names(table(subset(intersection_world, continent == "Seven seas (open ocean)")$geounit))
 
 #just some convenient category for countries
 g1 = names(table(subset(intersection_world, income_grp == "1. High income: OECD")$geounit))
@@ -417,7 +418,9 @@ eez = eez %>%
                                        ifelse(Country %in% g4, "4. Lower middle income",
                                               ifelse(Country %in% g5, "5. Low income", "Others"))))))
 
-eez %>% 
+eez_sub = subset(eez, Region %in% c("1. High income: OECD"))
+
+eez_sub %>% 
   mutate(Country = fct_reorder(Country, median)) %>% 
   ggplot() +
   geom_segment(aes(x = Country, 
@@ -428,7 +431,7 @@ eez %>%
                size = 1) + 
   geom_text(aes(x = Country, 
                 y = median, 
-                label = eez$Country),
+                label = eez_sub$Country),
             hjust = -0.05, 
             vjust = -0.5) + 
   geom_hline(yintercept = baseline$median, 
@@ -442,12 +445,12 @@ eez %>%
            ymax = baseline$upper.ci,
            alpha = .2) +
   geom_point(aes(x = Country, y = median, color = Region)) +
-  scale_color_manual(values = pals::parula(length(unique(eez$Region)))) +
+  scale_color_manual(values = pals::parula(length(unique(eez_sub$Region)))) +
   coord_flip() +
   xlab("") +
   ylab("Disparity (Median with 95% CI)") +
   theme_pubr() +
-  facet_wrap(.~ Region, scales = "free_y", ncol = 1) +
+  # facet_wrap(.~ Region, scales = "free_y", ncol = 1) +
   theme(
     # legend.justification = c(1,0), 
     # legend.position = c(1,0),
@@ -458,6 +461,8 @@ eez$area = "with_EEZ"
 country$area = "without_EEZ"
 colnames(country)[1] = "Country"
 nation = rbind(country, eez)
+
+nation = subset(nation, area == "with_EEZ")
 
 nation %>% 
   mutate(Country = fct_reorder(Country, median)) %>% 
@@ -545,3 +550,4 @@ states %>%
     axis.text.y = element_blank(),
     legend.justification = c(0,1), 
     legend.position = c(0,1))
+

@@ -1,4 +1,9 @@
-ts_BCE <- raster("./data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot()
+library(raster)
+library(spatial.tools)
+library(dplyr)
+library(ggplot2)
+
+ts_BCE <- raster("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot()
 
 ts_BCE <- raster("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>%  plot()
 
