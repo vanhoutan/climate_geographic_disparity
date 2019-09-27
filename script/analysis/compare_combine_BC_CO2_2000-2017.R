@@ -5,6 +5,7 @@ library(raster)
 library(colorRamps)
 library(ggpubr)
 library(sm)
+library(maps)
 
 BC <- list.files('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$') # list all files in the MERRA model folder
 BC = BC[226:441] #BC data Jan 2000 - December 2017
@@ -91,6 +92,7 @@ df_2 = subset(df, axis == "lon")
 sm.density.compare(df_1$V1, df_1$group, model = "equal")
 sm.density.compare(df_2$V1, df_2$group, model = "equal")
 
+png("/Users/ktanaka/clim_geo_disp/output/BC_CO2_Spatial_Comparison_2000-2017.png", height = 10, width = 10, res = 500, units = "in")
 ggplot(df %>% sample_frac(1)) + 
   # geom_point(aes(x = V1, y = V2,
   #                colour = Var,
@@ -104,8 +106,12 @@ ggplot(df %>% sample_frac(1)) +
   facet_wrap(.~axis, scales = "free", ncol = 1) +
   # facet_wrap(.~Year, scales = "free") +
   xlim(-180,180)+
-  theme_pubr()
-
+  xlab("") + 
+  ylab("Normalized Density") + 
+  ggtitle("Mean black carcbon and CO2 concentration 2000-2017") + 
+  theme_pubr(I(20)) + 
+  theme(legend.position = c(0.12,0.9))
+dev.off()
 
 # match BC and CO2 layers -------------------------------------------------
 
@@ -124,8 +130,8 @@ plot(log10(stack(co2, v1, v2, v3, v4)),
      # zlim = c(-35, 0.875115),
      col = matlab.like(100))
 
-bce_1deg = resample(bce, co2, method = "bilinear")
-bce_1deg_g = bce_1deg/1000
+bce_1deg = resample(bce, co2, method = "bilinear") #use bilinear interpolation method to resample BC on 1 by 1 deg grid
+bce_1deg_g = bce_1deg/1000 #bc is kg/sq m, need to convert to g/sq m
 
 #multiply by global warminig potenital value for 20 years
 #Bond et al (2013) 3200 (270-6200)
@@ -134,14 +140,22 @@ bce_1deg_g = bce_1deg/1000
 bce_1deg_g_adj = bce_1deg_g*2200
 bce_1deg_g_adj = bce_1deg_g*3200
 
-par(mfrow = c(1,3))
-plot(log10(bce_1deg_g_adj), col = matlab.like(100), zlim = c(-50,1), main = "BCE resampled at 1*1 degree, adjusted by GWP20 log10(g/m-2)"); map(add = T)
-plot(log10(co2), col = matlab.like(100), zlim = c(-50,1), main = "Fossil fuel CO2 log10(g/m-2)"); map(add = T)
+png("/Users/ktanaka/clim_geo_disp/output/BC_CO2_BC+CO2_2000-2017.png", height = 8, width = 4.5, res = 500, units = "in")
+par(mfrow = c(3,1))
+plot(log10(bce_1deg_g_adj), col = matlab.like(100), zlim = c(-50,1), main = "BC resampled at 1*1 deg, adjusted by GWP20 log10(g/m-2)"); map(add = T)
+plot(log10(co2), col = matlab.like(100), zlim = c(-50,1), main = "Fossil fuel CO2 log10(gC/m-2)"); map(add = T)
 plot(log(sum(bce_1deg_g_adj, co2)), col = matlab.like(100), zlim = c(-50,1), main = "Adjusted BCE + CO2 log10(g/m-2)"); map(add = T)
+dev.off()
 
 plot(log10(stack(bce_1deg_g_adj, co2)), zlim = c(-22, 1), col = matlab.like(100))
 
 #combine
-bco2 = sum(bce_1deg_g_adj, co2)
-plot(log10(bco2), col = matlab.like(100))
 
+bco2 = sum(bce_1deg_g_adj, co2)
+
+png("/Users/ktanaka/clim_geo_disp/output/BC_CO2_Combined_1*1_deg_2000-2017.png", height = 8, width = 6.3, res = 500, units = "in")
+par(mfrow = c(2,1))
+plot(bco2, col = matlab.like(100), main = "BC+CO2 2000-2017, GWP adjusted, (g/m-2)"); map(add = T)
+plot(log10(bco2), col = matlab.like(100), main = "BC+CO2 2000-2017, GWP adjusted, log10(g/m-2))"); map(add = T)
+dev.off()
+  
