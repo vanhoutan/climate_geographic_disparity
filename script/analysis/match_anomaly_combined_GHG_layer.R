@@ -33,10 +33,10 @@ load("/Users/ktanaka/clim_geo_disp/output/BC-CO2_Combined_2000-2017.RData") #BC 
 ##############################################################
 # bco2 <- raster("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #Just BC
 
-par(mfrow = c(2,1))
-ghg = color.palette(c("white", "red", "black"), space="rgb")
-plot(bco2, col = ghg(100), axes = F); map(add = T); degAxis(1); degAxis(2, las = 2)
-plot(log10(bco2), col = ghg(100), axes = F); map(add = T); degAxis(1); degAxis(2, las = 2)
+# par(mfrow = c(2,1))
+# ghg = color.palette(c("white", "red", "black"), space="rgb")
+# plot(bco2, col = ghg(100), axes = F); map(add = T); degAxis(1); degAxis(2, las = 2)
+# plot(log10(bco2), col = ghg(100), axes = F); map(add = T); degAxis(1); degAxis(2, las = 2)
 
 
 ##########################################################################
@@ -62,13 +62,19 @@ plot(log10(bco2), col = ghg(100), axes = F); map(add = T); degAxis(1); degAxis(2
 # plot(abs(anomaly), col = change(100),  zlim = c(0,21), main = "RCP85, Absolute Anomaly"); map(add = T)
 # dev.off()
 
-rm(change, ghg, color.palette, pal, steps)
+rm(ghg, color.palette, pal, steps)
 
 ######################################################
 ### select climate anomaly data, pick rcp scenario ###
 ######################################################
 
-scenario = function(clim_anom){
+scenario = function(clim_anom, rcp){
+  
+  clim_anom = "ensemble_2"
+  rcp = "RCP8.5"
+
+  setwd("/Users/ktanaka/clim_geo_disp/data")
+  
   
   #MPI_ESM RCP-based anomalies - only single time period 2020-2100, can modify baseline and future time frame
   if (clim_anom == "original") {
@@ -80,12 +86,12 @@ scenario = function(clim_anom){
   }
   
   #CMIP5 ENSMN based anomalies
-  if (clim_anom == "esn_1") anomaly = stack("/Users/ktanaka/Downloads/ENSMN RCP8.5 anomaly (2006-2055)-(1956-2005).nc", varname = "anomaly") #RCP8.5 anomaly (2050-2099)-(1956-2005)
-  if (clim_anom == "esn_2") anomaly = stack("/Users/ktanaka/Downloads/ENSMN RCP8.5 anomaly (2050-2099)-(1956-2005).nc", varname = "anomaly") #RCP8.5 anomaly (2006-2055)-(1956-2005)
+  if (clim_anom == "ensemble_1") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
+  if (clim_anom == "ensemble_2") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
   
   #MPI_ESM_MR based anomalies
-  if (clim_anom == "mpi_1") anomaly = stack("/Users/ktanaka/Downloads/MPI-ESM-MR RCP8.5 anomaly (2006-2055)-(1956-2005).nc", varname = "anomaly") #RCP8.5 anomaly (2050-2099)-(1956-2005)
-  if (clim_anom == "mpi_2") anomaly = stack("/Users/ktanaka/Downloads/MPI-ESM-MR RCP8.5 anomaly (2050-2099)-(1956-2005).nc", varname = "anomaly") #RCP8.5 anomaly (2006-2055)-(1956-2005)
+  if (clim_anom == "mpi_1") anomaly = stack(paste0("MPI-ESM-MR ", rcp, " anomaly (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
+  if (clim_anom == "mpi_2") anomaly = stack(paste0("MPI-ESM-MR ", rcp, " anomaly (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
   
   anomaly <- spatial_sync_raster(anomaly, bco2, method = "ngb", size_only = F, verbose = T)
   anomaly <- abs(anomaly) # make absolute or not absolute anomally
@@ -120,6 +126,7 @@ scenario = function(clim_anom){
   
   # turn in to point file to detect overlap with regions of interest
   disparity <- st_as_sf(x = raw_ratio, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+  # summary(disparity)
   
   # # color idea 1, come up with some nice contrasting color pattern
   # disp_col = "Darkorange"
@@ -139,50 +146,54 @@ scenario = function(clim_anom){
   # high = "red"
   # low = "black"
   
-  if (clim_anom == "mpi_1") label = "Model: MPI-ESM-MR \n Experiment: RCP8.5 \n 21st Century Period: 2020-2100 \n Historical Baseline: 1880-2005"
-  if (clim_anom == "mpi_2") label = "Model: MPI-ESM-MR \n Experiment: RCP8.5 \n 21st Century Period: 2020-2100 \n Historical Baseline: 1880-2005)"
-  if (clim_anom == "esn_1") label = "Model: Ensemble \n Experiment: RCP8.5 \n 21st Century Period: 2020-2100 \n Historical Baseline: 1880-2005"
-  if (clim_anom == "esn_1") label = "Model: Ensemble \n Experiment: RCP8.5 \n 21st Century Period: 2020-2100 \n Historical Baseline: 1880-2005"
-  if (clim_anom == "original") label = " Model: MPI-ESM-MR \n Experiment: RCP8.5 \n 21st Century Period: 2020-2100 \n Historical Baseline: 1880-2005"
+  if (clim_anom == "mpi_1") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2006-2055 \nHistorical Baseline: 1956-2005")
+  if (clim_anom == "mpi_2") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2050-2099 \nHistorical Baseline: 1956-2005)")
+  if (clim_anom == "ensemble_1") label = paste0("Model: Ensemble \nExperiment: ", rcp, " \n21st Century Period: 2006-2055 \nHistorical Baseline: 1956-2005")
+  if (clim_anom == "ensemble_2") label = paste0("Model: Ensemble \nExperiment: ", rcp, " \n21st Century Period: 2050-2099 \nHistorical Baseline: 1956-2005")
+  if (clim_anom == "original") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2020-2100 \nHistorical Baseline: 1880-2005")
   
-  
+  ### Set Universal Color Scale ###
+  disparity_limits = c(-2.27, 2.27) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
+
   # input x y plot
   xy_plot <-
-    ggplot(raw_ratio %>% 
-             sample_frac(1)) +
-    geom_point(aes(x = BCE, y = anomaly, fill = disparity),
-               size = 4, 
-               alpha = .6, 
-               shape = 21,
-               show.legend = T) +
-    geom_abline(
-      intercept = min(raw_ratio$anomaly, na.rm = T),
-      slope = slope) +
-    
-    # scale_fill_gradient2(
-    #  limits = c(-max(raw_ratio$disparity, na.rm = T), max(raw_ratio$disparity, na.rm = T)),
-    #  high = high, 
-    #  low = low,
-    #  name = "Disparity")+
-    
-    scale_fill_gradientn(colours = c("cyan", "black", "red"), 
-                         values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
-                         limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)),
-                         name = "") + 
-    
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    ylab("Absolute near-surface air temperature anomaly (deg C)") + 
-    xlab("Mean BC + Fossil Fuel CO2 emission (g/m2): 2000-2017") + 
-    coord_fixed(ratio = 1/slope) +
-    theme_pubr() +
-    theme(legend.position = "right") +  
-    annotate("text",
-             x = 0.1, 
-             y = Inf, 
-             hjust = 0,
-             vjust = 1,
-             label = label)
+      ggplot(raw_ratio %>% 
+               sample_frac(1)) +
+      geom_point(aes(x = BCE, y = anomaly, color = disparity),
+                 size = 4, 
+                 alpha = .6, 
+                 shape = 21,
+                 show.legend = T) +
+      geom_abline(
+        intercept = min(raw_ratio$anomaly, na.rm = T),
+        slope = slope) +
+      
+      # scale_fill_gradient2(
+      #  limits = c(-max(raw_ratio$disparity, na.rm = T), max(raw_ratio$disparity, na.rm = T)),
+      #  high = high, 
+      #  low = low,
+      #  name = "Disparity")+
+      
+      scale_color_gradientn(colours = c("cyan", "black", "red"), 
+                            values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                            limits = disparity_limits,
+                           name = "") + 
+      
+      scale_x_continuous(expand = c(0,0))+
+      scale_y_continuous(expand = c(0,0))+
+      ylab("Absolute near-surface air temperature anomaly (deg C)") + 
+      xlab("Mean BC + Fossil Fuel CO2 emission (g/m2): 2000-2017") + 
+      coord_fixed(ratio = 1/slope) +
+      theme_pubr() +
+      theme(legend.position = "right", 
+            text = element_text(size = 20)) +  
+      annotate("text",
+               x = 0.1, 
+               y = Inf, 
+               hjust = 0,
+               vjust = 1,
+               # size = 5,
+               label = label)
   
   # spatial plot
   world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
@@ -192,7 +203,7 @@ scenario = function(clim_anom){
     geom_tile(aes(x = x, y = y, fill = disparity #fill = scale(disparity)
     ), 
     show.legend = T) +
-    geom_sf(data = world, fill = NA, size = .25, color = "lightgray") +
+    geom_sf(data = world, fill = NA, size = 0.15, color = "lightgray") +
     
     # scale_fill_gradient2(high = high, 
     #                      low = low, 
@@ -201,8 +212,8 @@ scenario = function(clim_anom){
     #                                 max(raw_ratio$disparity, na.rm = T))) +
     
     scale_fill_gradientn(colours = c("cyan", "black", "red"), 
-                         values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
-                         limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)), 
+                         values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                         limits = disparity_limits,
                          name = "") +
     
     scale_x_continuous(expand = c(-0.005, 0)) +
@@ -211,26 +222,29 @@ scenario = function(clim_anom){
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
+          text = element_text(size = 6.5),
           # legend.justification = c(-0.1, 1), 
           legend.position = "right") 
   
-  gridExtra::grid.arrange(xy_plot, map_plot, ncol = 2)
+  # gridExtra::grid.arrange(xy_plot, map_plot, ncol = 2)
   
-  if (clim_anom == "original") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2020:2100_MPI_original_xy.pdf", height = 7, width = 10)
-  if (clim_anom == "mpi_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2005:2055_MPI_xy.pdf", height = 7, width = 10)
-  if (clim_anom == "mpi_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2050:2099_MPI_xy.pdf", height = 7, width = 10)
-  if (clim_anom == "esn_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2005:2055_ENS_xy.pdf", height = 7, width = 10)
-  if (clim_anom == "esn_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2050:2099_ENS_xy.pdf", height = 7, width = 10)
+  setwd("/Users/ktanaka/Desktop")
+  
+  if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_xy.pdf", height = 5, width = 6)
+  if (clim_anom == "mpi_1") pdf(paste0("Disparity_2006-2055_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
+  if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050-2099_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_XY_", rcp , ".pdf"), height = 5, width = 6)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_XY_", rcp , ".pdf"), height = 5, width = 6)
   
   print(xy_plot)  
   
   dev.off()
   
-  if (clim_anom == "original") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2020:2100_MPI_original_map.pdf", height = 7, width = 10)
-  if (clim_anom == "mpi_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2005:2055_MPI_map.pdf", height = 7, width = 10)
-  if (clim_anom == "mpi_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2050:2099_MPI_map.pdf", height = 7, width = 10)
-  if (clim_anom == "esn_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2005:2055_ENS_map.pdf", height = 7, width = 10)
-  if (clim_anom == "esn_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_2050:2099_ENS_map.pdf", height = 7, width = 10)
+  if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_map.pdf", height = 3.5, width = 6)
+  if (clim_anom == "mpi_1") pdf(paste0("Disparity_2005:2055_MPI_map_", rcp , ".pdf"), height = 3.5, width = 6)
+  if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050:2099_MPI_map_", rcp , ".pdf"), height = 3.5, width = 6)
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_Map_", rcp , ".pdf"), height = 3.5, width = 6)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_Map_", rcp , ".pdf"), height = 3.5, width = 6)
   
   print(map_plot)  
   
@@ -240,7 +254,7 @@ scenario = function(clim_anom){
   hist_carbon <- 
     ggplot(raw_ratio) + geom_histogram(aes(BCE)) +   
     ylab("") +
-    xlab("Carbon (g/ sq m)") +
+    xlab("Carbon (g/m2)") +
     theme_pubr()
   
   map_carbon <-
@@ -249,15 +263,18 @@ scenario = function(clim_anom){
                     y = y, 
                     fill = BCE), # when inputs are raw
                 show.legend = T) +
-    geom_sf(data = world, fill = NA,size = .1,color = "black")+
-    scale_fill_gradientn(colours = c("white", "Red2",  "Black"), "BC+CO2 GWP adjusted (g/m-2)")+
+    geom_sf(data = world, fill = NA, size = .1,color = "gray")+
+    scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                         values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
+                         # limits = disparity_limits,
+                         name = "GWP adjusted BC + CO2 (g/m2)")+
     coord_sf() +
     scale_x_continuous(expand = c(-0.005, 0)) +
     scale_y_continuous(expand = c(-0.005, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
-          legend.position = "bottom") 
+          legend.position = "top") 
   
   hist_anomlay <- 
     ggplot(raw_ratio) + geom_histogram(aes(anomaly)) + 
@@ -272,190 +289,172 @@ scenario = function(clim_anom){
                     fill = anomaly), # when inputs are raw
                 show.legend = T)+
     geom_sf(data = world, fill = NA,size = .1, color = "black")+
-    scale_fill_gradientn(colours = c("white", "Red2"), "Absolute near-surface air temperature anomaly (deg C)")+
+    scale_fill_gradientn(colours = c("black", "cyan", "red"), 
+                         limits = c(0,10.5),
+                         "Absolute near-surface air temperature anomaly (deg C)")+
     coord_sf() +
     scale_x_continuous(expand = c(-0.005, 0)) +
     scale_y_continuous(expand = c(-0.005, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
-          legend.position = "bottom") 
+          legend.position = "top") 
   
-  if (clim_anom == "original") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_Input_orignial.pdf", height = 15, width = 20)
-  if (clim_anom == "mpi_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_Input_mpi_1.pdf", height = 15, width = 20)
-  if (clim_anom == "mpi_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_Input_mpi_2.pdf", height = 15, width = 20)
-  if (clim_anom == "ens_1") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_Input_esn_1.pdf", height = 15, width = 20)
-  if (clim_anom == "ens_2") pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/fig_drafts/Disparity_Input_esn_2.pdf", height = 15, width = 20)
+  if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_input.pdf", height = 8, width = 11)
+  if (clim_anom == "mpi_1") pdf(paste0("Disparity_2005:2055_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
+  if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050:2099_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_Emission-Anomaly_", rcp , ".pdf"), height = 12, width = 10)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_Emission-Anomaly_", rcp , ".pdf"), height = 12, width = 10)
   
-  p = gridExtra::grid.arrange(map_anomaly, hist_anomlay, map_carbon, hist_carbon)
+  # p = gridExtra::grid.arrange(map_anomaly, hist_anomlay, map_carbon, hist_carbon)
+  p = gridExtra::grid.arrange(map_anomaly, map_carbon)
+  
   print(p)
   dev.off()
   
-  return(disparity)
+  rm(map_anomaly, hist_anomlay, map_carbon, hist_carbon, high, low, disp_col, map_plot, xy_plot, anomaly, bco2, raw_ratio, rise, run, slope, world, p, scenario)
+  
+  
+  ################################################
+  ### Intersect with different analysis layers ###
+  ################################################
+  
+  ###########################
+  ### Terrestorial Biomes ###
+  ###########################
+  
+  shape <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
+  
+  # shape <- ms_simplify(shape, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+  shape <- shape %>% st_as_sf()  
+  
+  # assign names to biomes
+  shape$BIOME <- as.factor(shape$BIOME)
+  shape$BIOME <- fct_recode(shape$BIOME, 
+                            Tropical_and_Subtropical_Moist_Broadleaf_Forests             = "1",
+                            Tropical_and_Subtropical_Dry_Broadleaf_Forests               = "2",
+                            Tropical_and_Subtropical_Coniferous_Forests                  = "3",
+                            Temperate_Broadleaf_and_Mixed_Forests                        = "4",
+                            Temperate_Conifer_Forests                                    = "5",
+                            Boreal_Forests_Taiga                                         = "6",
+                            Tropical_and_Subtropical_Grasslands_Savannas_and_Shrublands  = "7",
+                            Temperate_Grasslands_Savannas_and_Shrublands                 = "8",
+                            Flooded_Grasslands_and_Savannas                              = "9", 
+                            Montane_Grasslands_and_Shrublands                            = "10",
+                            Tundra                                                       = "11",
+                            Mediterranean_Forests_Woodlands_and_Scrub                    = "12",
+                            Deserts_and_Xeric_Shrublands                                 = "13",
+                            Mangroves                                                    = "14",
+                            Large_Inland_Waterbodies                                     = "98",
+                            Polar_Artic                                                  = "99"
+  )
+  
+  # pull out inland water bodies
+  shape <- shape %>% 
+    filter(!BIOME %in% c("Large_Inland_Waterbodies",""))
+  
+  # find intersections with disparity
+  intersection_biome <- st_intersection(disparity,shape)
+  rm(shape)
+  
+  
+  #####################
+  ### Marine Biomes ###
+  #####################
+  
+  #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
+  shape_MEOW <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
+  
+  # shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+  shape_MEOW <- shape_MEOW %>% st_as_sf()  
+
+  # clip out marine ecoregions overlapping on land
+  # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
+  load("/Users/ktanaka/clim_geo_disp/data/land_ocean_df.RData")
+  shape_MEOW <- st_difference(shape_MEOW, st_union(land))
+  
+  # find intersections with disparity
+  intersection_realm <- st_intersection(disparity,shape_MEOW)
+  rm(land, shape_MEOW)
+  
+  
+  #############################
+  ### Countries without EEZ ###
+  #############################
+  
+  #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
+  world <- ne_countries(scale = "large", returnclass = "sf") #worldwide country polygon
+  
+  # find intersections with disparity
+  intersection_world <- st_intersection(disparity, world)
+  rm(world)
+  
+  
+  ##########################
+  ### Countries with EEZ ###
+  ##########################
+  
+  #EEZ land_union shapefile
+  eez_land <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
+  
+  # eez_land <- ms_simplify(eez_land, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
+  
+  eez_land <- eez_land %>% st_as_sf()  
+  
+  eez_land$Country <- as.factor(eez_land$Country)
+  
+  # find intersections with disparity
+  intersection_land_eez <- st_intersection(disparity,eez_land)
+  rm(eez_land)
+  
+  
+  #################
+  ### US states ###
+  #################
+  
+  states <- ne_states(country = "United States of America", returnclass = "sf")
+  
+  # find intersections with disparity
+  intersection_states <- st_intersection(disparity, states)
+  rm(states)
+  
+  
+  ########################
+  #### Ocean vs. Land ####
+  ########################
+  
+  # ocean <- ne_download(type = "ocean", category = 'physical', returnclass = "sf") 
+  # land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
+  load("/Users/ktanaka/clim_geo_disp/data/land_ocean_df.RData")
+  
+  
+  # find intersections with disparity
+  land_intersection <- st_intersection(disparity,land)
+  ocean_intersection <- st_intersection(disparity,ocean)
+  
+  # matchup column order
+  ocean_intersection <- ocean_intersection %>% dplyr::select(BCE,anomaly,ratio,disparity,featurecla,scalerank,min_zoom,geometry)
+  
+  colnames(land_intersection)
+  colnames(ocean_intersection)
+  
+  earth <- rbind(land_intersection,ocean_intersection)
+  
+  rm(ocean, land, land_intersection,ocean_intersection)
+  
+  setwd("/Users/ktanaka/Desktop")
+  save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, earth, 
+       file = paste0("intersection_result_", clim_anom, "_", rcp, ".RData"))
   
 }
 
-disparity = scenario("original")
-disparity = scenario("esn_1")
-disparity = scenario("esn_2")
-disparity = scenario("mpi_1")
-disparity = scenario("mpi_2")
-
-rm(map_anomaly, hist_anomlay, map_carbon, hist_carbon, high, low, disp_col, map_plot, xy_plot, anomaly, bco2, raw_ratio, rise, run, slope, world, p, scenario)
-
-
-################################################
-### Intersect with different analysis layers ###
-################################################
-
-###########################
-### Terrestorial Biomes ###
-###########################
-
-shape <- readOGR(dsn = "/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/summarization/TEOW", 
-                 layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
-
-# shape <- ms_simplify(shape, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
-shape <- shape %>% st_as_sf()  
-
-# assign names to biomes
-shape$BIOME <- as.factor(shape$BIOME)
-shape$BIOME <- fct_recode(shape$BIOME, 
-                          Tropical_and_Subtropical_Moist_Broadleaf_Forests             = "1",
-                          Tropical_and_Subtropical_Dry_Broadleaf_Forests               = "2",
-                          Tropical_and_Subtropical_Coniferous_Forests                  = "3",
-                          Temperate_Broadleaf_and_Mixed_Forests                        = "4",
-                          Temperate_Conifer_Forests                                    = "5",
-                          Boreal_Forests_Taiga                                         = "6",
-                          Tropical_and_Subtropical_Grasslands_Savannas_and_Shrublands  = "7",
-                          Temperate_Grasslands_Savannas_and_Shrublands                 = "8",
-                          Flooded_Grasslands_and_Savannas                              = "9", 
-                          Montane_Grasslands_and_Shrublands                            = "10",
-                          Tundra                                                       = "11",
-                          Mediterranean_Forests_Woodlands_and_Scrub                    = "12",
-                          Deserts_and_Xeric_Shrublands                                 = "13",
-                          Mangroves                                                    = "14",
-                          Large_Inland_Waterbodies                                     = "98",
-                          Polar_Artic                                                  = "99"
-)
-
-# pull out inland water bodies
-shape <- shape %>% 
-  filter(!BIOME %in% c("Large_Inland_Waterbodies",""))
-
-# find intersections with disparity
-intersection_biome <- st_intersection(disparity,shape)
-rm(shape)
-
-
-#####################
-### Marine Biomes ###
-#####################
-
-#shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
-shape_MEOW <- readOGR(dsn = "/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/summarization/MEOW_2", 
-                      layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  # read the shapefile in by name not the lack of .shp extension
-
-# shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
-shape_MEOW <- shape_MEOW %>% st_as_sf()  
-shape$REALM <- as.factor(shape$REALM)
-
-# clip out marine ecoregions overlapping on land
-land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
-shape_MEOW <- st_difference(shape_MEOW, st_union(land))
-
-# find intersections with disparity
-intersection_realm <- st_intersection(disparity,shape_MEOW)
-rm(land, shape_MEOW)
-
-
-#############################
-### Countries without EEZ ###
-#############################
-
-#shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
-world <- ne_countries(scale = "large", returnclass = "sf") #worldwide country polygon
-
-# find intersections with disparity
-intersection_world <- st_intersection(disparity, world)
-rm(world)
-
-
-##########################
-### Countries with EEZ ###
-##########################
-
-#EEZ land_union shapefile
-eez_land <- readOGR(dsn = "/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/summarization/EEZ_land_union", 
-                    layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
-
-# eez_land <- ms_simplify(eez_land, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
-
-eez_land <- eez_land %>% st_as_sf()  
-
-# #Do I need to standadize the country name with the World shapefile?
-# eez_land$Country = gsub("&", "and", eez_land$Country)
-# eez_land$Country = gsub("United States", "United States of America", eez_land$Country)
-# eez_land$Country = gsub(", DRC", "", eez_land$Country)
-# eez_land$Country = gsub("Congo", "Democratic Republic of the Congo", eez_land$Country)
-# eez_land$Country = gsub("Virgin Islands, British", "British Virgin Islands", eez_land$Country)
-# eez_land$Country = gsub("Cote d'Ivoire", "Ivory Coast", eez_land$Country)
-# eez_land$Country = gsub("Faroe Is.", "Faroe Islands", eez_land$Country)
-# eez_land$Country = gsub("Cayman Is.", "Cayman Islands", eez_land$Country)
-# eez_land$Country = gsub("Heard I. and McDonald Is.", "Heard Island and McDonald Islands", eez_land$Country)
-# eez_land$Country = gsub("Norfolk Island.", "Norfolk I.", eez_land$Country)
-# A = names(table(world$geounit))
-# B = names(table(eez_land$Country))
-# mismatch = unique(B[!B%in%A])
-# country_list = names(table(world$geounit))
-# eez_land <- eez_land %>% filter(Country %in% country_list)
-
-eez_land$Country <- as.factor(eez_land$Country)
-
-# find intersections with disparity
-intersection_land_eez <- st_intersection(disparity,eez_land)
-rm(eez_land)
-
-
-#################
-### US states ###
-#################
-
-states <- ne_states(country = "United States of America", returnclass = "sf")
-
-# find intersections with disparity
-intersection_states <- st_intersection(disparity,states)
-rm(states)
-
-
-########################
-#### Ocean vs. Land ####
-########################
-
-ocean <- ne_download(type = "ocean", category = 'physical', returnclass = "sf") 
-land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
-
-# find intersections with disparity
-land_intersection <- st_intersection(disparity,land)
-ocean_intersection <- st_intersection(disparity,ocean)
-
-# matchup column order
-ocean_intersection <- ocean_intersection %>% dplyr::select(BCE,anomaly,ratio,disparity,featurecla,scalerank,min_zoom,geometry)
-
-colnames(land_intersection)
-colnames(ocean_intersection)
-
-earth <- rbind(land_intersection,ocean_intersection)
-
-rm(ocean, land)
-
-# save.image("~/Desktop/intersection_result_BCO2_ESM_2005-2055.RData")
-# save.image("~/Desktop/intersection_result_BCO2_ESM_2050-2099.RData")
-# save.image("~/Desktop/intersection_result_BCO2_MPI_2005-2055.RData")
-save.image("~/Desktop/intersection_result_BCO2_EPI_2050-2099.RData")
-
-
-
+# disparity = scenario("original")
+scenario("ensemble_1", "RCP4.5")
+scenario("ensemble_2", "RCP4.5")
+scenario("ensemble_1", "RCP8.5")
+scenario("ensemble_2", "RCP8.5")
+scenario("mpi_1", "RCP8.5")
+scenario("mpi_2", "RCP8.5")
 
 # extract quantiles -------------------------------------------------------
 load("~/Desktop/climate/climate_disp_2019-master/data_output/intersection_result.RData")
