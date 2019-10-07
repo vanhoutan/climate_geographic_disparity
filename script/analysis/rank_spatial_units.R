@@ -7,20 +7,33 @@ library(maps)
 
 rm(list = ls())
 
-anom = c("MPI_ESM", "CMIP5_Ensemble", "MPI_Org")[2]
+model_run = c("esn_1", "esn_2", "mpi_orgiginal")[1]
 scale = c("scaled", "unscaled")[1]
-period = c("2005-2055", "2050-2099", "2020-2100")[1]
+rcp = c("RCP4.5", "RCP8.5")[1]
 
-if (anom == "CMIP5_Ensemble") load(paste0("~/clim_geo_disp/output/intersection_result_BCO2_ESM_", period, ".RData"))
-if (anom == "MPI_ESM") load(paste0("~/clim_geo_disp/output/intersection_result_BCO2_MPI_", period, ".RData"))
-if (anom == "MPI_Org") load("~/clim_geo_disp/output/intersection_result_BCO2_99perecentile.RData") # BC + CO2 with values aggregated at 99th percentile
+if (model_run == "mpi_original") {
+  
+  load("~/clim_geo_disp/output/intersection_result_BCO2_99perecentile.RData") 
+  
+} else {
+  
+  load(paste0("~/clim_geo_disp/output/intersection_result_", model_run, "_", rcp, ".RData"))
+  
+  if (model_run == "esn_1") period = "2005-2055"
+  if (model_run == "esn_2") period = "2050-2099"
+  
+}
+
+# if (anom == "CMIP5_Ensemble") load(paste0("~/clim_geo_disp/output/intersection_result_BCO2_ESM_", period, ".RData"))
+# if (anom == "MPI_ESM") load(paste0("~/clim_geo_disp/output/intersection_result_BCO2_MPI_", period, ".RData"))
+# if (anom == "MPI_Org") load("~/clim_geo_disp/output/intersection_result_BCO2_99perecentile.RData") # BC + CO2 with values aggregated at 99th percentile
 
 # process process process -------------------------------------------------
 
 # load("~/clim_geo_disp/output/intersection_result_BCO2.RData")
 # load("~/clim_geo_disp/output/intersection_result_rcp85_untrimmed.RData")
 
-rm(land_intersection, ocean_intersection)
+# rm(land_intersection, ocean_intersection)
 
 exclude_list = c("Area en controversia (disputed - Peruvian point of view)", 
                  "Area of overlap Australia/Indonesia", 
@@ -53,7 +66,7 @@ intersection_land_eez$Country = gsub("St. ", "Saint ", intersection_land_eez$Cou
 Australia = sov.expand("Australia", regex = F)
 China = sov.expand("China", regex = F); China = gsub("China:", "", China, fixed = T)
 Denmark = sov.expand("Denmark", regex = F)
-Finland = sov.expand("Finland", regex = F); Finland = gsub("Finland:", "", Norway, fixed = T)
+Finland = sov.expand("Finland", regex = F); Finland = gsub("Finland:", "", Finland, fixed = T)
 France = sov.expand("France", regex = F)
 Netherlands = sov.expand("Netherlands", regex = F)
 New_Zealand = sov.expand("New Zealand", regex = F)
@@ -258,18 +271,18 @@ rank_individual_unit <- function(var) {
     
     top = df %>% 
       # group_by(Region) %>% 
-      top_n(11, median)
+      top_n(25, median)
     
     bottom = df %>% 
       # group_by(Region) %>% 
-      top_n(-11, median)
+      top_n(-25, median)
     
     df_sub = tbl_df(bind_rows(top, bottom))
     df_sub$type = "Ecoregions"
     
   }
   
-  if (var == "Global_Subregions") {
+  if (var == "Political_regions") {
     
     baseline = subset(baseline, type %in% c("Global_Subregions"))
     df = subset(df, type %in% c("Global_Subregions"))
@@ -277,11 +290,11 @@ rank_individual_unit <- function(var) {
     
     top = df %>% 
       # group_by(Region) %>% 
-      top_n(11, median)
+      top_n(25, median)
     
     bottom = df %>% 
       # group_by(Region) %>% 
-      top_n(-11, median)
+      top_n(-25, median)
     
     df_sub = tbl_df(bind_rows(top, bottom))
     df_sub$type = "Global_Subregions"
@@ -315,11 +328,11 @@ rank_individual_unit <- function(var) {
     
     top = df %>% 
       # group_by(Region) %>% 
-      top_n(11, median)
+      top_n(50, median)
     
     bottom = df %>% 
       # group_by(Region) %>% 
-      top_n(-11, median)
+      top_n(-50, median)
     
     df_sub = tbl_df(bind_rows(top, bottom))
     df_sub$type = "Countries_with_EEZ"
@@ -409,7 +422,7 @@ rank_individual_unit <- function(var) {
                y = Inf, 
                hjust = 1,
                vjust = -0.2, 
-               label = paste0("\n Temperature Anomaly = ", anom, "\n Future Period = ", period))
+               label = paste0("\n Temperature Anomaly = ", model_run, "\n Future Period = ", period, "\n Experiment = ", rcp))
     
     p2 = subset(df, n > 0) %>% 
       mutate(unit = fct_reorder(unit, median)) %>% 
@@ -460,18 +473,58 @@ rank_individual_unit <- function(var) {
             legend.justification = c(0,1), 
             legend.position = "none") 
     
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", anom, "_", period, "_Short.pdf"), height = 8, width = 12)
+    p3 = subset(df_sub, n > 0) %>% 
+      mutate(unit = fct_reorder(unit, median)) %>% 
+      ggplot() +
+      # geom_segment(aes(
+      #   color = median,
+      #   x = unit, xend = unit,
+      #   y = lower.ci, yend = upper.ci),
+      #   size = 0.5) +
+      geom_point(aes(
+        color = median, 
+        x = unit, 
+        y = median),
+        size = 1.5) +
+      coord_flip() +
+      geom_hline(yintercept = baseline$mean, 
+                 linetype = "dashed", 
+                 color = "lightgrey", 
+                 size = 1) + 
+      # annotate("rect",
+      #          xmin = 0, xmax = 10,
+      #          ymin = -9, ymax = 9,
+      #          alpha = .1, 
+      #          fill = "black") +
+      # annotate("rect",
+      #          xmin = nrow(df)-10, xmax = nrow(df),
+      #          ymin = -9, ymax = 9,
+      #          alpha = .2, 
+      #          fill = "red") +
+      # scale_colour_gradient2(low = "Black", 
+    #                        mid = "white", 
+    #                        high = "Red", 
+    #                        midpoint = baseline$mean,
+    #                        limits = c(-max(abs(df_sub$median)), max(abs(df_sub$median))),
+    #                        name = "") + 
+    scale_colour_gradientn(
+      colours = c("cyan", 
+                  "black",
+                  "red"),
+      values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
+      limits = c(-max(abs(df$median)), max(abs(df$median))), name = "") + 
+      # ylim(-10, 10) +
+      xlab("") +
+      ylab("") +
+      theme_pubr() + 
+      theme(axis.ticks = element_blank(), 
+            legend.justification = c(0,1), 
+            legend.position = "none") 
     
-    # gridExtra::grid.arrange(p1, p2, ncol = 2)
-    print(p1)
+    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
+    print(p3)
     dev.off()
-    
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", anom, "_", period, "_Full.pdf"), height = 8, width = 12)
-    
-    print(p2)
-    dev.off()
-    
-    
+
   } else {
     
     p1 = subset(df_sub, n > 0) %>% 
@@ -520,7 +573,7 @@ rank_individual_unit <- function(var) {
                y = Inf, 
                hjust = 1,
                vjust = -0.2, 
-               label = paste0("\n Model = ", anom, "\n Future Period = ", period))
+               label =  paste0("\n Temperature Anomaly = ", model_run, "\n Future Period = ", period, "\n Experiment = ", rcp))
     
     p2 = subset(df, n > 0) %>% 
       mutate(unit = fct_reorder(unit, median)) %>% 
@@ -566,17 +619,58 @@ rank_individual_unit <- function(var) {
                y = Inf, 
                hjust = 1,
                vjust = -0.2, 
-               label = paste0("\n Model = ", anom, "\n Future Period = ", period))
+               label =  paste0("\n Temperature Anomaly = ", model_run, "\n Future Period = ", period, "\n Experiment = ", rcp))
     
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", anom, "_", period, "_Short.pdf"), height = 8, width = 12)
+    p3 = subset(df, n > 0) %>% 
+      mutate(unit = fct_reorder(unit, median)) %>% 
+      ggplot() +
+      # geom_segment(aes(
+      #   color = median, # color = Ecoregion,
+      #   x = unit, xend = unit,
+      #   y = lower.ci, yend = upper.ci),
+      #   size = 0.5) +
+      geom_point(aes( 
+        color = median, # color = Ecoregion
+        x = unit, 
+        y = median), 
+        size = 1) +
+      geom_hline(yintercept = baseline$mean, 
+                 linetype = "dashed", 
+                 color = "lightgrey", 
+                 size = 1) + 
+      coord_flip() +
+      # scale_colour_gradient2(low = "Black", 
+      #                        mid = "white", 
+      #                        high = "Red", 
+      #                        midpoint = baseline$mean,
+      #                        limits = c(-max(abs(df_sub$median)), max(abs(df_sub$median))),
+      #                        name = "") + 
+      scale_colour_gradientn(
+        colours = c("cyan", 
+                    "black",
+                    "red"),
+        values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
+        limits = c(-max(abs(df$median)), max(abs(df$median))), name = "") + 
+      # facet_wrap(.~type, scales = "free_x", ncol = 7) +
+      xlab("") +
+      ylab("") +
+      theme_pubr() + 
+      theme(
+        # axis.text.y = element_blank(),
+        axis.ticks = element_blank(), 
+        legend.justification = c(-0.1, 1), 
+        legend.position = c(0, 1)) + 
+      annotate("text",
+               x = -Inf, 
+               y = Inf, 
+               hjust = 1,
+               vjust = -0.2, 
+               label =  paste0("\n Future Period = ", period, "\n Experiment = ", rcp))
+    
+    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
     
     # gridExtra::grid.arrange(p1, p2, ncol = 2)
-    print(p1)
-    dev.off()
-    
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", anom, "_", period, "_Full.pdf"), height = 8, width = 12)
-    
-    print(p2)
+    print(p3)
     dev.off()
     
   }
@@ -584,7 +678,7 @@ rank_individual_unit <- function(var) {
 }
 
 rank_individual_unit("Ecoregions")
-rank_individual_unit("Global_Subregions")
+rank_individual_unit("Political_regions")
 # rank_individual_unit("Countries_without_EEZ")
 rank_individual_unit("Countries_with_EEZ")
 rank_individual_unit("US_States")
@@ -791,15 +885,6 @@ rank_all_unit <- function() {
   
 }
 rank_all_unit()
-
-
-
-
-
-
-
-
-
 
 
 ##################
