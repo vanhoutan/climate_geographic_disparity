@@ -148,8 +148,8 @@ scenario = function(clim_anom, rcp){
   
   if (clim_anom == "mpi_1") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2006-2055 \nHistorical Baseline: 1956-2005")
   if (clim_anom == "mpi_2") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2050-2099 \nHistorical Baseline: 1956-2005)")
-  if (clim_anom == "ensemble_1") label = paste0("Model: Ensemble \nExperiment: ", rcp, " \n21st Century Period: 2006-2055 \nHistorical Baseline: 1956-2005")
-  if (clim_anom == "ensemble_2") label = paste0("Model: Ensemble \nExperiment: ", rcp, " \n21st Century Period: 2050-2099 \nHistorical Baseline: 1956-2005")
+  if (clim_anom == "ensemble_1") label = paste0("Experiment: ", rcp, " \n21st Century Period: 2006-2055")
+  if (clim_anom == "ensemble_2") label = paste0("Experiment: ", rcp, " \n21st Century Period: 2050-2099")
   if (clim_anom == "original") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2020-2100 \nHistorical Baseline: 1880-2005")
   
   ### Set Universal Color Scale ###
@@ -162,7 +162,7 @@ scenario = function(clim_anom, rcp){
       geom_point(aes(x = BCE, y = anomaly, color = disparity),
                  size = 4, 
                  alpha = .6, 
-                 shape = 21,
+                 shape = 20, #originally 21
                  show.legend = T) +
       geom_abline(
         intercept = min(raw_ratio$anomaly, na.rm = T),
@@ -175,67 +175,70 @@ scenario = function(clim_anom, rcp){
       #  name = "Disparity")+
       
       scale_color_gradientn(colours = c("cyan", "black", "red"), 
-                            values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                            # values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                            values = scales::rescale(c(-0.5, -0.11, 0, 0.11, 0.5)),
                             limits = disparity_limits,
-                           name = "") + 
-      
-      scale_x_continuous(expand = c(0,0))+
-      scale_y_continuous(expand = c(0,0))+
-      ylab("Absolute near-surface air temperature anomaly (deg C)") + 
-      xlab("Mean BC + Fossil Fuel CO2 emission (g/m2): 2000-2017") + 
-      coord_fixed(ratio = 1/slope) +
-      theme_pubr() +
-      theme(legend.position = "right", 
-            text = element_text(size = 20)) +  
-      annotate("text",
-               x = 0.1, 
-               y = Inf, 
-               hjust = 0,
-               vjust = 1,
-               # size = 5,
-               label = label)
+                            name = "") + 
+    
+    # scale_x_continuous(expand = c(0,0), limits = c(0,2))+
+    # scale_y_continuous(expand = c(0,0), limits = c(0,11))+
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    ylab("Absolute near-surface air temperature anomaly (deg C)") + 
+    xlab("Mean BC + Fossil Fuel CO2 emission (g/m-2): 2000-2017") + 
+    # coord_fixed(ratio = 1/slope) +
+    theme_pubr() +
+    theme(legend.position = "none", 
+          text = element_text(size = 10)) +  
+    annotate("text",
+             x = 0.1, 
+             y = Inf, 
+             hjust = 0,
+             vjust = 1,
+             # size = 5,
+             label = label)
   
   # spatial plot
   world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
   
   map_plot <-
     ggplot(raw_ratio) +
-    geom_tile(aes(x = x, y = y, fill = disparity #fill = scale(disparity)
-    ), 
-    show.legend = T) +
-    geom_sf(data = world, fill = NA, size = 0.15, color = "lightgray") +
-    
-    # scale_fill_gradient2(high = high, 
-    #                      low = low, 
-    #                      name = "",
-    #                      limits = c(-max(raw_ratio$disparity, na.rm = T),
-    #                                 max(raw_ratio$disparity, na.rm = T))) +
-    
+    # geom_tile(aes(x = x, y = y, fill = disparity), show.legend = T) +
+    geom_raster(aes(x = x, y = y, fill = disparity), show.legend = T) +
+    # geom_sf(data = world, fill = NA, size = 0.15, color = "lightgray") +
+    coord_equal() + 
     scale_fill_gradientn(colours = c("cyan", "black", "red"), 
-                         values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                         # values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
                          limits = disparity_limits,
                          name = "") +
     
     scale_x_continuous(expand = c(-0.005, 0)) +
     scale_y_continuous(expand = c(-0.005, 0)) +
-    ggtitle(label) + 
-    theme_pubr() +
+    # ggtitle(label) + 
+    theme_minimal() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
           text = element_text(size = 6.5),
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          
           # legend.justification = c(-0.1, 1), 
-          legend.position = "right") 
+          legend.position = "none") 
   
-  # gridExtra::grid.arrange(xy_plot, map_plot, ncol = 2)
+  # pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/original_disparity_egend.pdf", height = 2, width = 1)
+  # legend <- cowplot::get_legend(map_plot)
+  # grid::grid.newpage()
+  # grid::grid.draw(legend)
+  # dev.off()
   
   setwd("/Users/ktanaka/Desktop")
   
   if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_xy.pdf", height = 5, width = 6)
   if (clim_anom == "mpi_1") pdf(paste0("Disparity_2006-2055_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
   if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050-2099_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
-  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_XY_", rcp , ".pdf"), height = 5, width = 6)
-  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_XY_", rcp , ".pdf"), height = 5, width = 6)
-  
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_XY_", rcp , ".pdf"), height = 4.2, width = 4.2)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_XY_", rcp , ".pdf"), height = 4.2, width = 4.2)
+
   print(xy_plot)  
   
   dev.off()
@@ -265,22 +268,25 @@ scenario = function(clim_anom, rcp){
                 show.legend = T) +
     geom_sf(data = world, fill = NA, size = .1,color = "gray")+
     scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
-                         values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
+                         # values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
                          # limits = disparity_limits,
-                         name = "GWP adjusted BC + CO2 (g/m2)")+
+                         name = "g/m-2")+
     coord_sf() +
     scale_x_continuous(expand = c(-0.005, 0)) +
     scale_y_continuous(expand = c(-0.005, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
-          legend.position = "top") 
+          legend.position = "right") + 
+    ggtitle("GWP adjusted BC + CO2: 2000-2017: 1*1 deg")
   
   hist_anomlay <- 
     ggplot(raw_ratio) + geom_histogram(aes(anomaly)) + 
-    ylab("") +
-    xlab("Temperature anomaly (deg C)") +
+    ylab("") + xlab("Temperature anomaly (deg C)") +
     theme_pubr()
+  
+  if (clim_anom == "ensemble_1") title = paste0("Experiment: ", rcp, "\n21st century period: 2006-2055")
+  if (clim_anom == "ensemble_2") title = paste0("Experiment: ", rcp, "\n21st century period: 2050-2099")
   
   map_anomaly <-
     ggplot(raw_ratio) +
@@ -288,17 +294,24 @@ scenario = function(clim_anom, rcp){
                     y = y,
                     fill = anomaly), # when inputs are raw
                 show.legend = T)+
-    geom_sf(data = world, fill = NA,size = .1, color = "black")+
+    geom_sf(data = world, fill = NA,size = .1, color = "lightgray")+
     scale_fill_gradientn(colours = c("black", "cyan", "red"), 
                          limits = c(0,10.5),
-                         "Absolute near-surface air temperature anomaly (deg C)")+
+                         "deg C")+
     coord_sf() +
     scale_x_continuous(expand = c(-0.005, 0)) +
     scale_y_continuous(expand = c(-0.005, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
-          legend.position = "top") 
+          legend.position = "none")  + 
+    ggtitle(title)
+  
+  # pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/clim_anomaly_legend.pdf", height = 2, width = 1)
+  # legend <- cowplot::get_legend(map_anomaly)
+  # grid::grid.newpage()
+  # grid::grid.draw(legend)
+  # dev.off()
   
   if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_input.pdf", height = 8, width = 11)
   if (clim_anom == "mpi_1") pdf(paste0("Disparity_2005:2055_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
@@ -308,6 +321,18 @@ scenario = function(clim_anom, rcp){
   
   # p = gridExtra::grid.arrange(map_anomaly, hist_anomlay, map_carbon, hist_carbon)
   p = gridExtra::grid.arrange(map_anomaly, map_carbon)
+  
+  print(p)
+  dev.off()
+  
+  if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_input.pdf", height = 8, width = 11)
+  if (clim_anom == "mpi_1") pdf(paste0("Disparity_2005:2055_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
+  if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050:2099_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_Anomaly_", rcp , ".pdf"), height = 3.5, width = 6)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_Anomaly_", rcp , ".pdf"), height = 3.5, width = 6)
+  
+  # p = gridExtra::grid.arrange(map_anomaly, hist_anomlay, map_carbon, hist_carbon)
+  p = gridExtra::grid.arrange(map_anomaly)
   
   print(p)
   dev.off()

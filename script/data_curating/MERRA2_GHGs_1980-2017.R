@@ -1,3 +1,5 @@
+rm(list = ls())
+
 library(spatial.tools)
 library(ncdf4)
 library(tidyverse)  # data tidying
@@ -97,10 +99,10 @@ for(gas in 4){# in 1:length(emissions)){
   # save.image("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/ts_BCE_198001_201811.RData")
 }
 
-ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/OCEMAN_sum_Jan 31.grd") #%>% plot(col = matlab.like(100))
+# ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/OCEMAN_sum_Jan 31.grd") #%>% plot(col = matlab.like(100))
 ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #%>% plot(col = matlab.like(100))
-ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/SO4EMAN_Jan 31.grd") #%>% plot(col = matlab.like(100))
-ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/SO4EMAN_Jan 31.grd") #%>% plot(col = matlab.like(100))
+# ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/SO4EMAN_Jan 31.grd") #%>% plot(col = matlab.like(100))
+# ts_BCE <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/SO4EMAN_Jan 31.grd") #%>% plot(col = matlab.like(100))
 
 df_ <- ts_BCE %>% rasterToPoints() %>% as.data.frame() 
 str(df_)
@@ -109,12 +111,14 @@ ggplot(df_,aes(x,y,fill =layer ) ) +
   geom_raster()+
   scale_fill_viridis_c()+
   scale_fill_distiller(palette = "Spectral")+
-  coord_fixed()
+  coord_fixed() + 
+  theme(legend.position = "none")
 ggplot(df_,aes(x,y,fill = ifelse(layer > quantile(layer, 0.99), quantile(layer, 0.99), layer) ) ) +
   geom_raster()+
   scale_fill_viridis_c()+
   scale_fill_distiller(palette = "Spectral")+
-  coord_fixed()
+  coord_fixed()+ 
+  theme(legend.position = "none")
 
 rm(each_month_year_raster,filename,year_month_read)
 

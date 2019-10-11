@@ -1,3 +1,5 @@
+rm(list = ls())
+
 library(spatial.tools)
 library(ncdf4)
 library(tidyverse)  # data tidying
@@ -92,25 +94,23 @@ df_2 = subset(df, axis == "lon")
 sm.density.compare(df_1$V1, df_1$group, model = "equal")
 sm.density.compare(df_2$V1, df_2$group, model = "equal")
 
-png("/Users/ktanaka/clim_geo_disp/output/BC_CO2_Spatial_Comparison_2000-2017.png", height = 10, width = 10, res = 500, units = "in")
+df$axis= as.character(df$axis)
+df$axis[df$axis == "lat"] = "Latitude~(deg)"
+df$axis[df$axis == "lon"] = "Longitude~(deg)"
+
+pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/BC_CO2_Spatial_Comparison_2000-2017.pdf", height = 10, width = 10)
 ggplot(df %>% sample_frac(1)) + 
-  # geom_point(aes(x = V1, y = V2,
-  #                colour = Var,
-  #                fill = Var),
-  #            # size = 2,
-  #            alpha = .2,
-  #            # shape = 21,
-  #            show.legend = T) +
-  geom_density(aes(x = V1, colour = Var, fill = Var), alpha = 0.4) +
+  geom_density(aes(x = V1, fill = Var), alpha = 0.5, size = 0.1) +
+  scale_fill_manual(values = c("orange", "blue"), "") +
+  facet_wrap(.~axis, scales = "free", ncol = 1, labeller = label_parsed) +
   # facet_wrap(.~axis + Year, scales = "free") +
-  facet_wrap(.~axis, scales = "free", ncol = 1) +
   # facet_wrap(.~Year, scales = "free") +
+  # ggtitle("Mean black carcbon and CO2 concentration 2000-2017") + 
   xlim(-180,180)+
   xlab("") + 
   ylab("Normalized Density") + 
-  ggtitle("Mean black carcbon and CO2 concentration 2000-2017") + 
   theme_pubr(I(20)) + 
-  theme(legend.position = c(0.12,0.9))
+  theme(legend.position = c(0.1,0.92))
 dev.off()
 
 # match BC and CO2 layers -------------------------------------------------

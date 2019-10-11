@@ -265,6 +265,8 @@ colnames(df)[2] = "Disparity"
 
 plot_ranking = function(var, h, w) {
   
+  disparity_limits = c(-2.27, 2.27) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
+  
   # df = subset(df, type %in% c("Land", "Ocean"))
   # df = subset(df, type %in% c("Global_Subregions"))
   # df = subset(df, type %in% c("Countries_without_EEZ"))
@@ -303,11 +305,11 @@ plot_ranking = function(var, h, w) {
       x = unit, xend = unit,
       y = lower.ci, yend = upper.ci),
       size = 0.5) +
-    geom_point(aes( 
+    geom_point(aes(
       color = median, # color = Ecoregion
-      x = unit, 
-      y = median), 
-      size = 2) +
+      x = unit,
+      y = median),
+      size = 1.5) +
     coord_flip() +
     geom_hline(yintercept = median(df$median), 
                linetype = "dashed", 
@@ -317,8 +319,8 @@ plot_ranking = function(var, h, w) {
       colours = c("cyan", 
                   "black",
                   "red"),
-      values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
-      limits = c(-max(abs(df$median)), max(abs(df$median))),
+      values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+      limits = disparity_limits,
       name = "") + 
     xlab("") +
     ylab("") +
@@ -328,13 +330,15 @@ plot_ranking = function(var, h, w) {
       # axis.text.y = element_blank(),
       axis.ticks.y = element_blank(), 
       legend.justification = c(-0.1, 1), 
-      legend.position = c(0, 1)) + 
-    annotate("text",
-             x = -Inf, 
-             y = Inf, 
-             hjust = 1,
-             vjust = -0.2, 
-             label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+      # legend.position = c(0, 1),
+      legend.position = "none") + 
+    ggtitle("\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+    # annotate("text",
+    #          x = Inf, 
+    #          y = -Inf, 
+    #          hjust = 0,
+    #          vjust = 0.8,
+    #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
   
   print(p)
   
@@ -344,11 +348,10 @@ plot_ranking = function(var, h, w) {
   
 }
 
-plot_ranking("Ecoregions", 6, 12)
-plot_ranking("Political_regions", 6, 12)
-plot_ranking("Nation_states", 25, 12)
-plot_ranking("US_States", 8,12)
-
+plot_ranking("Ecoregions", 6, 8)
+plot_ranking("Political_regions", 6, 8)
+plot_ranking("Nation_states", 25, 8)
+plot_ranking("US_States", 7, 8)
 
 plot_ranking_tobether = function(h, w, col_size, segment_size){
   
@@ -408,12 +411,12 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
   df3$category = "Nation_states"
   df4$category = "US_states"
   
-  # top = df1 %>% top_n(11, median)
-  # bottom = df1 %>% top_n(-11, median)
-  # df1 = tbl_df(bind_rows(top, bottom))
+  top = df1 %>% top_n(14, median)
+  bottom = df1 %>% top_n(-14, median)
+  df1 = tbl_df(bind_rows(top, bottom))
   
-  top = df3 %>% top_n(22, median)
-  bottom = df3 %>% top_n(-22, median)
+  top = df3 %>% top_n(25, median)
+  bottom = df3 %>% top_n(-25, median)
   df3 = tbl_df(bind_rows(top, bottom))
   
   # top = df4 %>% top_n(22, median)
