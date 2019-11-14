@@ -7,18 +7,20 @@ library(maps)
 
 rm(list = ls())
 
+data = c("_merra2_edgar_ghg", "_merra2_edgar_co2", "_merra2_odiac")[1]
+
 pre_combine = function(rcp, period){
-  
+
   # rcp = c("RCP4.5", "RCP8.5")[1]
   # period = c("2006-2055", "2050-2099")[1]
   scale = c("scaled", "unscaled")[2]
   
-  ### rco4.5, 2006-2055 ###
-  load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, ".RData"))
+  load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, data, ".Rdata"))
   
   intersection_biome$Outcome = paste0(rcp, " ", period)
   intersection_realm$Outcome = paste0(rcp, " ", period)
   intersection_land_eez$Outcome = paste0(rcp, " ", period)
+  intersection_world$Outcome = paste0(rcp, " ", period)
   intersection_states$Outcome = paste0(rcp, " ", period)
   
   exclude_list = c("Area en controversia (disputed - Peruvian point of view)", 
@@ -135,6 +137,7 @@ pre_combine = function(rcp, period){
     group_by(BIOME) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -146,6 +149,7 @@ pre_combine = function(rcp, period){
     group_by(REALM) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -157,6 +161,7 @@ pre_combine = function(rcp, period){
     group_by(featurecla) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -168,6 +173,7 @@ pre_combine = function(rcp, period){
     group_by(name) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -179,6 +185,7 @@ pre_combine = function(rcp, period){
     group_by(subregion) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -190,6 +197,7 @@ pre_combine = function(rcp, period){
     group_by(geounit) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T),
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -201,6 +209,7 @@ pre_combine = function(rcp, period){
     group_by(Country) %>% 
     summarise(median = median(disparity, na.rm = T),
               mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
               sd = sd(disparity, na.rm = T), 
               n = n()) %>%
     mutate(se = sd/sqrt(n),
@@ -215,13 +224,13 @@ pre_combine = function(rcp, period){
   country = country %>% st_set_geometry(NULL) # drop geometry
   eez = eez %>% st_set_geometry(NULL) # drop geometry
   
-  colnames(biome) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); biome$type = "Land"
-  colnames(realm) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); realm$type = "Ocean"
-  colnames(subr) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); subr$type = "Global_Subregions"
-  colnames(country) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); country$type = "Countries_without_EEZ"
-  colnames(eez) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); eez$type = "Countries_with_EEZ"
-  colnames(states) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); states$type = "US_States"
-  colnames(earth) = c("unit", "median", "mean", "sd", "n", "se", "lower.ci", "upper.ci"); earth$type = "Land_Sea"
+  colnames(biome) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); biome$type = "Land"
+  colnames(realm) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); realm$type = "Ocean"
+  colnames(subr) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); subr$type = "Global_Subregions"
+  colnames(country) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); country$type = "Countries_without_EEZ"
+  colnames(eez) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); eez$type = "Countries_with_EEZ"
+  colnames(states) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); states$type = "US_States"
+  colnames(earth) = c("unit", "median", "mean", "q", "sd", "n", "se", "lower.ci", "upper.ci"); earth$type = "Land_Sea"
   
   df = rbind(biome, realm, states, subr, country, eez, earth); rm(biome, realm, earth, states, subr, country, eez)
   
@@ -259,24 +268,25 @@ rcp85_end = pre_combine("RCP8.5", "2050-2099")
 df = rbind(rcp45_mid, rcp45_end, rcp85_mid, rcp85_end)
 df$type = ifelse(df$type %in% c("Land", "Ocean"), "Ecoregions", df$type)
 df$type = ifelse(df$type %in% c("Global_Subregions"), "Political_regions", df$type)
-df$type = ifelse(df$type %in% c("Countries_with_EEZ"), "Nation_states", df$type)
+df$type = ifelse(df$type %in% c("Countries_without_EEZ"), "Nation_states", df$type) # choose between "Countries_without_EEZ" or "Countries_with_EEZ"
 
-colnames(df)[2] = "Disparity"
+colnames(df)[2] = "Disparity" #rank by median
+colnames(df)[4] = "Disparity" #rank by 10th quantile
 
-plot_ranking = function(var, h, w) {
+plot_ranking = function(var, h, w, col_size, segment_size) {
   
-  disparity_limits = c(-2.27, 2.27) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
-  
+  # segment_size = 1
+  # col_size = 2
+  # var = "Nation_states"
+
+  disparity_limits = c(-max(abs(df$Disparity)), max(abs(df$Disparity)))
   # df = subset(df, type %in% c("Land", "Ocean"))
   # df = subset(df, type %in% c("Global_Subregions"))
   # df = subset(df, type %in% c("Countries_without_EEZ"))
   # df = subset(df, type %in% c("US_States"))
   
-  # var = "Nation_states"
-  
   df = subset(df, type %in% var)
-  
-  colnames(df)[2] = "Disparity"
+  # disparity_limits = c(min(df$Disparity), max(df$Disparity))
   
   df =  df %>% 
     group_by(unit) %>% 
@@ -289,78 +299,101 @@ plot_ranking = function(var, h, w) {
            upper.ci = median + qt(1 - (0.05 / 2), n - 1) * se)
   
   if (var %in% c("Nation_states")) {
-    
-    # top = df %>% top_n(25, median)
-    # bottom = df %>% top_n(-25, median)
-    # df = tbl_df(bind_rows(top, bottom))
-    
+
+    top = df %>% top_n(25, median) #25 or 10
+    bottom = df %>% top_n(-25, median)
+    df = tbl_df(bind_rows(top, bottom))
+
   }
   
+  # top = df %>% top_n(25, median) #25 or 10
+  # bottom = df %>% top_n(-25, median)
+  # df = tbl_df(bind_rows(top, bottom))
   
   p = subset(df, n > 0) %>% 
     mutate(unit = fct_reorder(unit, median)) %>% 
     ggplot() +
-    geom_segment(aes(
-      color = median, # color = Ecoregion,
-      x = unit, xend = unit,
-      y = lower.ci, yend = upper.ci),
-      size = 0.5) +
-    geom_point(aes(
-      color = median, # color = Ecoregion
-      x = unit,
-      y = median),
-      size = 1.5) +
-    coord_flip() +
     geom_hline(yintercept = median(df$median), 
-               linetype = "dashed", 
+               # linetype = "dashed", 
                color = "lightgrey", 
                size = 1) + 
+    geom_segment(aes(
+      color = median, 
+      x = unit, xend = unit,
+      y = lower.ci, yend = upper.ci),
+      size = segment_size) +
+    geom_point(aes(
+      color = median,
+      x = unit,
+      y = median),
+      size = col_size) +
+    # ylim(c(-max(abs(df$median)), max(abs(df$median)))*1.1) +
+    coord_flip() +
     scale_colour_gradientn(
       colours = c("cyan", 
                   "black",
                   "red"),
       values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+      # values = scales::rescale(c(-0.5, -0.11, 0, 0.11, 0.5)),
       limits = disparity_limits,
       name = "") + 
     xlab("") +
     ylab("") +
-    theme_classic2() + 
-    # ylim(c(-max(abs(df$median)), max(abs(df$median)))*1.1) +
+    theme_pubr() + 
+
     theme(
-      # axis.text.y = element_blank(),
-      axis.ticks.y = element_blank(), 
-      legend.justification = c(-0.1, 1), 
-      # legend.position = c(0, 1),
-      legend.position = "none") + 
-    ggtitle("\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
-    # annotate("text",
-    #          x = Inf, 
-    #          y = -Inf, 
-    #          hjust = 0,
-    #          vjust = 0.8,
-    #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+      # legend.position = c(0.9, 0.25), 
+      # legend.position = "none",
+      # title = element_text(colour = "white"),
+      # axis.text = element_text(color = "white"),
+      # axis.title = element_text(color = "white"),
+      # axis.line = element_line(color = "white"),
+      # legend.text = element_text(color = "white", size = 20),
+      # panel.background = element_rect(fill = "gray20"), # bg of the panel
+      # plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      # panel.grid.major = element_blank(), # get rid of major grid
+      # panel.grid.minor = element_blank(), # get rid of minor grid
+      # legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      # legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      text = element_text(size = 15))   
+  
+  # theme(
+  #   # axis.text.y = element_blank(),
+  #   axis.ticks.y = element_blank(), 
+  #   legend.justification = c(-0.1, 1), 
+  #   legend.position = c(0, 1)) 
+  
+  # ggtitle("\n Period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+  
+  # annotate("text",
+  #          x = -Inf,
+  #          y = Inf,
+  #          hjust = 1,
+  #          vjust = -0.5,
+  #          label =  "\nPeriod = 2006-2055 & 2050-2099\nExperiment = rcp 4.5 & 8.5")
   
   print(p)
   
-  pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, ".pdf"), height = h, width = w)
+  pdf(paste0("/Users/ktanaka/Desktop/Rank_", var, data, ".pdf"), height = h, width = w)
   print(p)
   dev.off()
   
 }
 
-plot_ranking("Ecoregions", 6, 8)
-plot_ranking("Political_regions", 6, 8)
-plot_ranking("Nation_states", 25, 8)
-plot_ranking("US_States", 7, 8)
+plot_ranking("Ecoregions", 5, 9, 3, 2)
+plot_ranking("Political_regions", 5, 5, 4, 2)
+plot_ranking("Nation_states", 8, 5, 4, 2)
+plot_ranking("US_States", 8, 5, 4, 2)
 
-plot_ranking_tobether = function(h, w, col_size, segment_size){
+plot_ranking_tobether = function(h, w, col_size, segment_size, font_size){
   
   # col_size = 1
   # segment_size = 2
   
   ### Set Universal Color Scale ###
-  disparity_limits = c(-2.27, 2.27) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
-
+  # disparity_limits = c(-2.27, 2.27) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
+  disparity_limits = c(min(df$Disparity), max(df$Disparity)) #this is -max(disparity); max(disparity) from rcp4.5 2006-2055 scenario
+  
   df1 = subset(df, type == "Ecoregions")
   df2 = subset(df, type == "Political_regions")
   df3 = subset(df, type == "Nation_states")
@@ -411,25 +444,39 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
   df3$category = "Nation_states"
   df4$category = "US_states"
   
-  top = df1 %>% top_n(14, median)
-  bottom = df1 %>% top_n(-14, median)
+  top = df1 %>% top_n(5, median)
+  bottom = df1 %>% top_n(-5, median)
   df1 = tbl_df(bind_rows(top, bottom))
   
-  top = df3 %>% top_n(25, median)
-  bottom = df3 %>% top_n(-25, median)
+  top = df2 %>% top_n(5, median)
+  bottom = df2 %>% top_n(-5, median)
+  df2 = tbl_df(bind_rows(top, bottom))
+  
+  top = df3 %>% top_n(10, median)
+  bottom = df3 %>% top_n(-10, median)
   df3 = tbl_df(bind_rows(top, bottom))
   
-  # top = df4 %>% top_n(22, median)
-  # bottom = df4 %>% top_n(-22, median)
-  # df4 = tbl_df(bind_rows(top, bottom))
+  top = df4 %>% top_n(10, median)
+  bottom = df4 %>% top_n(-10, median)
+  df4 = tbl_df(bind_rows(top, bottom))
   
-  a = df3
-  b = rbind(df1, df2)
-  c = df4
+  a = df1
+  b = df2
+  c = df3
+  d = df4
   
   median_line = b %>% 
     group_by(category) %>% 
     summarise(Median = median(median))
+  
+  scientific <- function(x){
+    
+    library(ggplot2)
+    library(scales)
+    library(ggthemes)
+    
+    ifelse(x==0, "0", parse(text = gsub("[+]", "", gsub("e", " %*% 10^", scientific_format()(x)))))
+  }
   
   p1 = a %>% 
     mutate(unit = fct_reorder(unit, median)) %>% 
@@ -439,15 +486,15 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
       x = unit, xend = unit,
       y = lower.ci, yend = upper.ci),
       size = segment_size) +
-    # geom_point(aes( 
-    #   color = median, 
-    #   x = unit, 
-    #   y = median), 
-    #   size = col_size) +
+    geom_point(aes(
+      color = median,
+      x = unit,
+      y = median),
+      size = col_size) +
     coord_flip() +
     facet_wrap(.~ category) + 
     geom_hline(yintercept = median(a$median), 
-               linetype = "dashed", 
+               # linetype = "dashed", 
                color = "lightgrey", 
                size = 1) + 
     scale_colour_gradientn(
@@ -455,25 +502,35 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
                   "black",
                   "red"),
       values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
-      limits = disparity_limits,
+      # limits = disparity_limits,
       name = "") + 
     xlab("") +
     ylab("") +
-    theme_classic2() +
-    # ylim(c(-max(abs(a$median)), max(abs(a$median)))*1.1) +
+    theme_pubr() + 
+    scale_y_continuous(label = scientific) + 
     theme(
+      legend.position = "none",
+      strip.text.x = element_blank(),
       axis.ticks.y = element_blank(), 
       strip.background = element_blank(),
-      strip.text.x = element_blank(),
-      # legend.justification = c(-0.1, 1), 
-      # legend.position = c(0, 1),
-      legend.position = "none") 
-    # annotate("text",
-    #          x = -Inf, 
-    #          y = Inf, 
-    #          hjust = 1,
-    #          vjust = -0.2, 
-    #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+      title = element_text(colour = "white"),
+      axis.text = element_text(color = "white"),
+      axis.title = element_text(color = "white"),
+      axis.line = element_line(color = "white"),
+      legend.text = element_text(color = "white", size = 20),
+      panel.background = element_rect(fill = "gray20"), # bg of the panel
+      plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      panel.grid.major = element_blank(), # get rid of major grid
+      panel.grid.minor = element_blank(), # get rid of minor grid
+      legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      text = element_text(size = font_size))   
+  # annotate("text",
+  #          x = -Inf,
+  #          y = Inf,
+  #          hjust = 1,
+  #          vjust = -0.2,
+  #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
   
  
   p2 = b %>% 
@@ -484,15 +541,15 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
       x = unit, xend = unit,
       y = lower.ci, yend = upper.ci),
       size = segment_size) +
-    # geom_point(aes( 
-    #   color = median, 
-    #   x = unit, 
-    #   y = median), 
-    #   size = col_size) +
+    geom_point(aes(
+      color = median,
+      x = unit,
+      y = median),
+      size = col_size) +
     coord_flip() +
     geom_hline(data = median_line, 
                aes(yintercept = Median), 
-               linetype = "dashed", 
+               # linetype = "dashed", 
                color = "lightgrey", 
                size = 1) + 
     scale_colour_gradientn(
@@ -500,26 +557,35 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
                   "black",
                   "red"),
       values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
-      limits = disparity_limits,
+      # limits = disparity_limits,
       name = "") + 
     xlab("") +
     ylab("") +
-    theme_classic2() +
-    facet_wrap(.~ category, scales = "free_y", ncol = 1) + 
-    # ylim(c(-max(abs(a$median)), max(abs(a$median)))*1.1) +
+    theme_pubr() + 
+    scale_y_continuous(label = scientific) + 
     theme(
+      legend.position = "none",
+      strip.text.x = element_blank(),
       axis.ticks.y = element_blank(), 
       strip.background = element_blank(),
-      strip.text.x = element_blank(),
-      # legend.justification = c(-0.1, 1), 
-      # legend.position = c(0, 1),
-      legend.position = "none") 
-    # annotate("text",
-    #          x = -Inf, 
-    #          y = Inf, 
-    #          hjust = 1,
-    #          vjust = -0.2, 
-    #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+      title = element_text(colour = "white"),
+      axis.text = element_text(color = "white"),
+      axis.title = element_text(color = "white"),
+      axis.line = element_line(color = "white"),
+      legend.text = element_text(color = "white", size = 20),
+      panel.background = element_rect(fill = "gray20"), # bg of the panel
+      plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      panel.grid.major = element_blank(), # get rid of major grid
+      panel.grid.minor = element_blank(), # get rid of minor grid
+      legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      text = element_text(size = font_size))   
+  # annotate("text",
+  #          x = -Inf,
+  #          y = Inf,
+  #          hjust = 1,
+  #          vjust = -0.2,
+  #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
     
   
   p3 = c %>% 
@@ -530,15 +596,15 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
       x = unit, xend = unit,
       y = lower.ci, yend = upper.ci),
       size = segment_size) +
-    # geom_point(aes( 
-    #   color = median, 
-    #   x = unit, 
-    #   y = median), 
-    #   size = col_size) +
+    geom_point(aes(
+      color = median,
+      x = unit,
+      y = median),
+      size = col_size) +
     coord_flip() +
     facet_wrap(.~ category) + 
     geom_hline(yintercept = median(c$median), 
-               linetype = "dashed", 
+               # linetype = "dashed", 
                color = "lightgrey", 
                size = 1) + 
     scale_colour_gradientn(
@@ -546,33 +612,101 @@ plot_ranking_tobether = function(h, w, col_size, segment_size){
                   "black",
                   "red"),
       values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
-      limits = disparity_limits,
+      # limits = disparity_limits,
       name = "") + 
     xlab("") +
     ylab("") +
-    theme_classic2() +
-    # ylim(c(-max(abs(a$median)), max(abs(a$median)))*1.1) +
+    theme_pubr() + 
+    scale_y_continuous(label = scientific) + 
     theme(
+      legend.position = "none",
+      strip.text.x = element_blank(),
       axis.ticks.y = element_blank(), 
       strip.background = element_blank(),
-      strip.text.x = element_blank(),
-      # legend.justification = c(-0.1, 1), 
-      # legend.position = c(0, 1),
-      legend.position = "none") 
+      title = element_text(colour = "white"),
+      axis.text = element_text(color = "white"),
+      axis.title = element_text(color = "white"),
+      axis.line = element_line(color = "white"),
+      legend.text = element_text(color = "white", size = 20),
+      panel.background = element_rect(fill = "gray20"), # bg of the panel
+      plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      panel.grid.major = element_blank(), # get rid of major grid
+      panel.grid.minor = element_blank(), # get rid of minor grid
+      legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      text = element_text(size = font_size))   
   # annotate("text",
-  #          x = -Inf, 
-  #          y = Inf, 
+  #          x = -Inf,
+  #          y = Inf,
   #          hjust = 1,
-  #          vjust = -0.2, 
+  #          vjust = -0.2,
+  #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
+  
+  p4 = d %>% 
+    mutate(unit = fct_reorder(unit, median)) %>% 
+    ggplot() +
+    geom_segment(aes(
+      color = median, 
+      x = unit, xend = unit,
+      y = lower.ci, yend = upper.ci),
+      size = segment_size) +
+    geom_point(aes(
+      color = median,
+      x = unit,
+      y = median),
+      size = col_size) +
+    coord_flip() +
+    facet_wrap(.~ category) + 
+    geom_hline(yintercept = median(c$median), 
+               # linetype = "dashed", 
+               color = "lightgrey", 
+               size = 1) + 
+    scale_colour_gradientn(
+      colours = c("cyan", 
+                  "black",
+                  "red"),
+      values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+      # limits = disparity_limits,
+      name = "") + 
+    xlab("") +
+    ylab("") +
+    theme_pubr() + 
+    scale_y_continuous(label = scientific) + 
+    theme(
+      legend.position = "none",
+      strip.text.x = element_blank(),
+      axis.ticks.y = element_blank(), 
+      strip.background = element_blank(),
+      title = element_text(colour = "white"),
+      axis.text = element_text(color = "white"),
+      axis.title = element_text(color = "white"),
+      axis.line = element_line(color = "white"),
+      legend.text = element_text(color = "white", size = 20),
+      panel.background = element_rect(fill = "gray20"), # bg of the panel
+      plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      panel.grid.major = element_blank(), # get rid of major grid
+      panel.grid.minor = element_blank(), # get rid of minor grid
+      legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      text = element_text(size = font_size))   
+  # annotate("text",
+  #          x = -Inf,
+  #          y = Inf,
+  #          hjust = 1,
+  #          vjust = -0.2,
   #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
   
   
-  pdf("/Users/ktanaka/Desktop/Combined_plot.pdf", h = h, w = w)
-  gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
+  pdf(paste0("/Users/ktanaka/Desktop/Combined_ranking_1", data, ".pdf"), h = h, w = w)
+  gridExtra::grid.arrange(p1, p2, ncol = 1)
+  dev.off()
+  
+  pdf(paste0("/Users/ktanaka/Desktop/Combined_ranking_2", data, ".pdf"), h = h, w = w)
+  gridExtra::grid.arrange(p3, p4, ncol = 2)
   dev.off()
 
   
 }
 
-plot_ranking_tobether(10, 30, 2.5, 1)
+plot_ranking_tobether(8, 8, 1, 4, 12)
   

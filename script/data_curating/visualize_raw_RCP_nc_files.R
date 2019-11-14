@@ -1,3 +1,4 @@
+
 setwd("/Users/ktanaka/clim_geo_disp/data")
 
 library(raster)
@@ -55,8 +56,14 @@ names(rcp_historical_stdanom) = c("RCP4.5_historical_stdanom_(2006-2055)",
                                 "RCP8.5_historical_stdanom_(2006-2055)",
                                 "RCP8.5_historical_stdanom_(2050-2099)")
 
-pdf("~/Dropbox/PAPER climate geographic disparities/figures/supplemental/rcp_anom.pdf", width = 9.5, height = 5)
-plot(rcp_anom, zlim = c(0,11), col = matlab.like(100))
+pdf("~/Dropbox/PAPER climate geographic disparities/figures/supplemental/rcp_anom.pdf", width = 11, height = 6)
+par(mfrow = c(2,2), mar = c(2,3,3,3),
+    fg = 'white', col.axis = 'white', col.main="white", col.lab = 'white'
+    )
+plot(rcp_anom$RCP4.5_anomaly_.2006.2055., main = "RCP4.5 anomaly 2006-2055 (deg C)", zlim = c(0,11), col = matlab.like(100))
+plot(rcp_anom$RCP4.5_anomaly_.2050.2099., main = "RCP4.5 anomaly 2050-2099 (deg C)", zlim = c(0,11), col = matlab.like(100))
+plot(rcp_anom$RCP8.5_anomaly_.2006.2055., main = "RCP8.5 anomaly 2006-2055 (deg C)", zlim = c(0,11), col = matlab.like(100))
+plot(rcp_anom$RCP8.5_anomaly_.2050.2099., main = "RCP8.5 anomaly 2050-2099 (deg C)", zlim = c(0,11), col = matlab.like(100))
 dev.off()
 
 pdf("~/Dropbox/PAPER climate geographic disparities/figures/supplemental/rcp_ensem_mean_chang.pdf", width = 9.5, height = 5)

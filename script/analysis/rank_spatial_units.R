@@ -20,7 +20,7 @@ if (model_run == "mpi_original") {
   if (model_run == "esn_1") period = "2006-2055"
   if (model_run == "esn_2") period = "2050-2099"
   
-  load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, ".RData"))
+  load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, "_merra2_edgar_co2.RData"))
   
 }
 
@@ -521,7 +521,7 @@ rank_individual_unit <- function(var) {
             legend.justification = c(0,1), 
             legend.position = "none") 
     
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
+    pdf(paste0("/Users/ktanaka/Desktop/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
     print(p3)
     dev.off()
 
@@ -667,7 +667,7 @@ rank_individual_unit <- function(var) {
                vjust = -0.2, 
                label =  paste0("\n Future Period = ", period, "\n Experiment = ", rcp))
     
-    pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
+    pdf(paste0("/Users/ktanaka/Desktop/Rank_", var, "_", period, "_", rcp, ".pdf"), height = 16, width = 8)
     
     # gridExtra::grid.arrange(p1, p2, ncol = 2)
     print(p3)
@@ -679,7 +679,7 @@ rank_individual_unit <- function(var) {
 
 rank_individual_unit("Ecoregions")
 rank_individual_unit("Political_regions")
-# rank_individual_unit("Countries_without_EEZ")
+rank_individual_unit("Countries_without_EEZ")
 rank_individual_unit("Countries_with_EEZ")
 rank_individual_unit("US_States")
 # rank_individual_unit("Earth")
@@ -788,7 +788,7 @@ rank_all_unit <- function() {
              hjust = 1,
              vjust = -0.2,
              size = 1,
-             label = paste0("\n Model = ", anom, "\n Future Period = ", period))
+             label = paste0("\n Model = ", rcp, "\n Future Period = ", period))
   
   p2 = df %>% mutate(unit = fct_reorder(unit, median)) %>% 
     ggplot() +
@@ -827,7 +827,7 @@ rank_all_unit <- function() {
              y = Inf,
              hjust = 1,
              vjust = -0.2,
-             label = paste0("\n Model = ", anom, "\n Future Period = ", period))
+             label = paste0("\n Model = ", rcp, "\n Future Period = ", period))
   
   p3 = df %>% mutate(unit = fct_reorder(unit, median)) %>% 
     ggplot() +
@@ -866,19 +866,19 @@ rank_all_unit <- function() {
              y = -Inf,
              hjust = 1,
              vjust = -0.2,
-             label = paste0("\n Model = ", anom, "\n Future Period = ", period))
+             label = paste0("\n Model = ", rcp, "\n Future Period = ", period))
   
-  pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_Combined_", anom, "_", period, "_Short.pdf"),
+  pdf(paste0("/Users/ktanaka/Desktop/Rank_Combined_", rcp, "_", period, "_Short.pdf"),
       height = 13, width = 10)
   print(p1)
   dev.off()
   
-  pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_Combined_", anom, "_", period, "_Full.pdf"),
+  pdf(paste0("/Users/ktanaka/Desktop/Rank_Combined_", rcp, "_", period, "_Full.pdf"),
       height = 13, width = 10)
   print(p2)
   dev.off()
   
-  pdf(paste0("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/drafts/Rank_Combined_", anom, "_", period, "_Test.pdf"),
+  pdf(paste0("/Users/ktanaka/Desktop/Rank_Combined_", rcp, "_", period, "_Test.pdf"),
       height = 10, width = 20)
   print(p3)
   dev.off()
