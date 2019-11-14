@@ -17,10 +17,10 @@ if (model_run == "mpi_original") {
   
 } else {
   
-  load(paste0("~/clim_geo_disp/output/intersection_result_", model_run, "_", rcp, ".RData"))
-  
-  if (model_run == "esn_1") period = "2005-2055"
+  if (model_run == "esn_1") period = "2006-2055"
   if (model_run == "esn_2") period = "2050-2099"
+  
+  load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, ".RData"))
   
 }
 

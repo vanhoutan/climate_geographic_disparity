@@ -70,8 +70,8 @@ rm(ghg, color.palette, pal, steps)
 
 scenario = function(clim_anom, rcp){
   
-  clim_anom = "ensemble_2"
-  rcp = "RCP8.5"
+  # clim_anom = "ensemble_2"
+  # rcp = "RCP8.5"
 
   setwd("/Users/ktanaka/clim_geo_disp/data")
   
@@ -396,6 +396,7 @@ scenario = function(clim_anom, rcp){
   # clip out marine ecoregions overlapping on land
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
   load("/Users/ktanaka/clim_geo_disp/data/land_ocean_df.RData")
+  land <- land %>% st_set_precision(1000000) %>% lwgeom::st_make_valid()
   shape_MEOW <- st_difference(shape_MEOW, st_union(land))
   
   # find intersections with disparity

@@ -137,12 +137,23 @@ bce_1deg_g = bce_1deg/1000 #bc is kg/sq m, need to convert to g/sq m
 #Bond et al (2013) 3200 (270-6200)
 #Bond & Sun (2005) 2200 (690-4700)
 
-bce_1deg_g_adj = bce_1deg_g*2200
+
+#Unadjusted
+bce_1deg_g_adj = bce_1deg_g
+
+#GWP_20, 20 years
 bce_1deg_g_adj = bce_1deg_g*3200
 
-png("/Users/ktanaka/clim_geo_disp/output/BC_CO2_BC+CO2_2000-2017.png", height = 8, width = 4.5, res = 500, units = "in")
+#GWP_100, 100 years
+bce_1deg_g_adj = bce_1deg_g*900
+
+#GWP_20+GWP_100/2 = 2050
+bce_1deg_g_adj = bce_1deg_g*2050
+
+
+pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/BC_CO2_BC+CO2_2000-2017_GWP_unadjusted.pdf", height = 8, width = 4.5)
 par(mfrow = c(3,1))
-plot(log10(bce_1deg_g_adj), col = matlab.like(100), zlim = c(-50,1), main = "BC resampled at 1*1 deg, adjusted by GWP20 log10(g/m-2)"); map(add = T)
+plot(log10(bce_1deg_g_adj), col = matlab.like(100), zlim = c(-50,1), main = "BC resampled at 1*1 deg, unadjusted log10(g/m-2)"); map(add = T)
 plot(log10(co2), col = matlab.like(100), zlim = c(-50,1), main = "Fossil fuel CO2 log10(gC/m-2)"); map(add = T)
 plot(log(sum(bce_1deg_g_adj, co2)), col = matlab.like(100), zlim = c(-50,1), main = "Adjusted BCE + CO2 log10(g/m-2)"); map(add = T)
 dev.off()
