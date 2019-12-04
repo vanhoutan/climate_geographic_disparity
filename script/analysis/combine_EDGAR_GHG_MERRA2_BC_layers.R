@@ -15,29 +15,29 @@ library(maps)
 
 #MERRA2 BC resolution  0.5° × 0.625° kg m-2 s-1
 
-# list all files in the MERRA model folder
-BC <- list.files('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$')
-# BC = BC[226:441] #BC data Jan 2000 - December 2017
-BC <- paste0("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs/", BC) # add parent directories
-
-ghg <- c("OCEMAN","BCEMAN","SO2EMAN","SO4EMAN")[2] #BCEMAN = Black Carbon Anthropogenic Emissions
-
-bc = raster::stack()
-
-for (t in 1:length(BC)) {
-
-  filename <- BC[t] # pull the first file,first year
-
-  year_month_read <- stack(filename, varname = ghg) # read it in as a raster
-  names(year_month_read) <- paste0(ghg,"_", gsub(".*Nx.\\s*|.nc4.*", "", filename)) # generate name: Emission_yearmonth
-  print(names(year_month_read)) # print in the loop to keep an eye on progress
-  bc <- stack(bc,year_month_read) # add to the timeseries stack
-
-}
-
-bc_mean = mean(bc)
-
-save.image("/Users/ktanaka/clim_geo_disp/output/MERRA2_BC_Mean_1980-2018.RData")
+# # list all files in the MERRA model folder
+# BC <- list.files('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$')
+# # BC = BC[226:441] #BC data Jan 2000 - December 2017
+# BC <- paste0("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs/", BC) # add parent directories
+# 
+# ghg <- c("OCEMAN","BCEMAN","SO2EMAN","SO4EMAN")[2] #BCEMAN = Black Carbon Anthropogenic Emissions
+# 
+# bc = raster::stack()
+# 
+# for (t in 1:length(BC)) {
+# 
+#   filename <- BC[t] # pull the first file,first year
+# 
+#   year_month_read <- stack(filename, varname = ghg) # read it in as a raster
+#   names(year_month_read) <- paste0(ghg,"_", gsub(".*Nx.\\s*|.nc4.*", "", filename)) # generate name: Emission_yearmonth
+#   print(names(year_month_read)) # print in the loop to keep an eye on progress
+#   bc <- stack(bc,year_month_read) # add to the timeseries stack
+# 
+# }
+# 
+# bc_mean = mean(bc)
+# 
+# save.image("/Users/ktanaka/clim_geo_disp/output/MERRA2_BC_Mean_1980-2018.RData")
 
 
 load("/Users/ktanaka/clim_geo_disp/output/MERRA2_BC_Mean_1980-2018.RData")
@@ -178,12 +178,113 @@ plot(log10(bc_co2_ch4_n2o_adjusted), col = matlab.like(100))
 
 ### plot individual layers ###
 
-pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/Edgar GHG 1970-2018.pdf", height = 10, width = 15)
-par(mfrow = c(2,2))
-plot(raster::rotate(log10(co2_excl_mean)), col = matlab.like(100), main = "EDGAR CO2 EXCL 1970-2018 log10(kg m-2 s-1)"); maps::map(add = T)
-plot(raster::rotate(log10(co2_org_mean)), col = matlab.like(100), main = "EDGAR CO2 ORG 1970-2015 log10(kg m-2 s-1)"); maps::map(add = T)
-plot(raster::rotate(log10(ch4_mean)), col = matlab.like(100), main = "EDGAR CH4 EXCL 1970-2015 log10(kg m-2 s-1)"); maps::map(add = T)
-plot(raster::rotate(log10(n2o_mean)), col = matlab.like(100), main = "EDGAR N2O 1970-2015 log10(kg m-2 s-1)"); maps::map(add = T)
+xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')')
+
+pdf("/Users/ktanaka/Desktop/edgar GHG 1970-2018.pdf", height = 8.5, width = 15)
+par(mfrow = c(2,2), mar = c(4,4,4,6))
+plot(raster::rotate(log10(co2_excl_mean + co2_org_mean)), col = matlab.like(100), main = bquote(''*CO[2]* ': log10(kg ' *m^-2~s^-1*')'), axes = F); maps::map(add = T); degAxis(1); degAxis(2, las = 2)
+plot(log10(bc_mean_0.1), col = matlab.like(100), main = bquote('BC: log10(kg ' *m^-2~s^-1*')'), axes = F); maps::map(add = T); degAxis(1); degAxis(2, las = 2)
+plot(raster::rotate(log10(ch4_mean)), col = matlab.like(100), main = bquote(''*CH[4]* ': log10(kg ' *m^-2~s^-1*')'), axes = F); maps::map(add = T); degAxis(1); degAxis(2, las = 2)
+plot(raster::rotate(log10(n2o_mean)), col = matlab.like(100), main = bquote(''*N[2]* 'O: log10(kg ' *m^-2~s^-1*')'), axes = F); maps::map(add = T); degAxis(1); degAxis(2, las = 2)
+dev.off()
+
+co2 = raster::rotate(co2_excl_mean + co2_org_mean) %>% rasterToPoints() %>% data.frame()
+world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
+
+co2 = ggplot(co2 %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
+bc = bc_mean_0.1 %>% rasterToPoints() %>% data.frame()
+
+bc = ggplot(bc %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
+ch4 = raster::rotate(ch4_mean) %>% rasterToPoints() %>% data.frame()
+
+ch4 = ggplot(ch4 %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
+n2o = raster::rotate(n2o_mean) %>% rasterToPoints() %>% data.frame()
+
+n2o = ggplot(n2o %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
+unified = bc_co2_ch4_n2o_adjusted %>% rasterToPoints() %>% data.frame()
+
+unified = ggplot(unified %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
+pdf("~/Desktop/Figure_s.pdf", height = 8, width = 16)
+p = ggdraw() +
+  draw_plot(co2,    x = 0,   y = 0.5, width = 0.5, height = 0.5) +
+  draw_plot(bc,     x = 0.5, y = 0.5, width = 0.5, height = 0.5) +
+  draw_plot(ch4,    x = 0,   y = 0,   width = 0.5, height = 0.5) +
+  draw_plot(n2o,    x = 0.5, y = 0,   width = 0.5, height = 0.5) +
+  draw_plot_label(label = c("a", "c", "b", "d"), size = 25, 
+                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))  
+print(p)
+dev.off()
+
+
+
+pdf("/Users/ktanaka/Desktop/BC+CO2+CH4+N2O.pdf", height = 5, width = 8.34)
+par(mfrow = c(1,1))
+plot(log10(bc_co2_ch4_n2o_adjusted), col = matlab.like(100), main = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~s^-1*')'), axes = F); maps::map(add = T); degAxis(1); degAxis(2, las = 2)
 dev.off()
 
 pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/edgar co2 1970-2018_presentation.pdf", height = 5, width = 8.34)
@@ -232,10 +333,10 @@ ghg2 = as.data.frame(rasterToPoints(ch4_mean))
 ghg3 = as.data.frame(rasterToPoints(n2o_mean))
 ghg4 = as.data.frame(rasterToPoints(bc_mean))
 
-ghg1$GHG = "CO2 1970-2018"
-ghg2$GHG = "CH4 1970-2015"
-ghg3$GHG = "N2O 1970-2015"
-ghg4$GHG = "BC 1980-2018"
+ghg1$GHG = "CO2: 1970-2018"
+ghg2$GHG = "CH4: 1970-2015"
+ghg3$GHG = "N2O: 1970-2015"
+ghg4$GHG = "BC: 1980-2018"
 
 ghg = rbind(ghg4, ghg3, ghg2, ghg1)
 
@@ -243,7 +344,7 @@ ghg = ghg[,c("layer", "GHG")]
 
 library("ggsci")
 
-# pdf("/Users/ktanaka/Desktop/GHG_histgram.pdf", height = 6, width = 7)
+pdf("/Users/ktanaka/Desktop/GHG_histgram.pdf", height = 6, width = 7)
 
 fancy_scientific <- function(l) {
   # turn in to character string in scientific notation
@@ -256,15 +357,15 @@ fancy_scientific <- function(l) {
   parse(text=l)
 }
 
-ggplot(ghg %>% sample_frac(0.1), aes(x = log(layer), fill = GHG)) + 
-  geom_density(alpha = 0.5) + 
-  # xlim(-42, -15) + 
+ggplot(ghg %>% sample_frac(0.01), aes(x = log(layer), fill = GHG)) + 
+  geom_density(alpha = 0.8) + 
+  # xlim(-45, -15) +
   scale_y_continuous(labels = fancy_scientific) + 
   xlab("log10(kg m-2 s-1)") + ylab("") + 
-  # scale_fill_tron(name = "") +
-  scale_fill_viridis_d(name = "") +
-  theme_pubr() + 
-  ggtitle("Surface emissions (1970-2018: 0.1° x 0.1° res)") + 
+  scale_fill_tron(name = "") +
+  # scale_fill_viridis_d(name = "", begin = 0.5, end = 1) +
+  ggdark::dark_theme_classic() + 
+  ggtitle("Surface emissions (0.1° x 0.1°)") + 
   theme(legend.position = c(0.8,0.8),
         # title = element_text(colour = "white"),
         # axis.text = element_text(color = "white"),
@@ -277,7 +378,7 @@ ggplot(ghg %>% sample_frac(0.1), aes(x = log(layer), fill = GHG)) +
         # panel.grid.minor = element_blank(), # get rid of minor grid
         # legend.background = element_rect(fill = "transparent"), # get rid of legend bg
         # legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
-        text = element_text(size = 15))
+        text = element_text(size = 20))
 
 # par(mfrow = c(1,4), fg = 'white', col.axis = 'white', col.main = "white", col.lab = 'white')
 # hist(log10(co2_excl_mean + co2_org_mean), breaks = 50, col = "white", main = "Distribution of surface CO2", xlab = "log10(kg/m-2y-1)", ylab = "", xlim = c(-22, -1), ylim = c(0, 800000))
