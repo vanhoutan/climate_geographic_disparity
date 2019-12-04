@@ -1,6 +1,8 @@
 ### Read in emissions/ anomaly data, calculate ratio and disparity as in "basic_index_2" ###
 rm(list = ls())
 
+dir = Sys.info()[7]
+
 library(rnaturalearthdata)
 library(rnaturalearth)
 library(spatial.tools)
@@ -18,20 +20,18 @@ library(maps)
 library(ggpubr)
 library(sp)
 library(colortools)
-library(viridis)
-source("/Users/ktanaka/Google Drive/R/misc/color palette function.R")
-
+library(cowplot)
 
 ##################################################
 ### Combined BC-CO2 emission layer (2000-2017) ###
 ##################################################
-load("/Users/ktanaka/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData") #BC + CO2
+load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
 xlab = "BC + CO2 emission (g/m-2)"
 
 ##################################################
 ### Combined BC-CO2 emission layer (1970-2018) ###
 ##################################################
-load("/Users/ktanaka/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData") #BC + CO2
+load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
 xlab = "BC + CO2 emission (kg/m-2)"
@@ -40,30 +40,62 @@ bco2*1000
 ##################################################
 ### Combined BC-CO2 emission layer (1970-2018) ###
 ##################################################
-load("/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData") #BC + CO2
+load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_ch4_n2o_adjusted
 bco2 = bco2 * 31556952 #how many seconds in one Gregorian calendar year = 365.2425 days
-xlab = "BC + CO2 + CH4 + N2O emission (kg/m-2)"
-# bco2*1000
-xlab = bquote('Anthropogenic Emissions ('*CO[2]* '+' *CH[4]* '+' *N[2]* 'O+BC: kg ' *m^-2~y^-1*')')
+xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')')
+xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')')
 
-##########################################################
-### Analyze portin of area accounting 80% of emissions ###
-##########################################################
-df = bco2@data@values
-df = sort(df, decreasing = T)
-df = as.data.frame(df)
-df$ID = seq(1:dim(df)[1])
-df$cum_percentage= 100*cumsum(df$df)/sum(df$df)
-plot(df$cum_percentage, pch = ".", xlab = "")
-df_80 = subset(df, cum_percentage <= 90)
-5078/64800
+rm(bc_co2_adjusted, bc_co2_ch4_n2o_adjusted, bc_co2_unadjusted)
+
+#############################################################################
+### convert emissions to emissions per capita using NASA pop density data ###
+#############################################################################
+gpw_pop <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_1_deg.nc"), varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 1 degree")
+# gpw_pop <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_30_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 30 arc-minutes")
+# gpw_pop <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_15_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 15 arc-minutes")
+# gpw_pop <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_2pt5_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes")
+
+gpw_pop1 <- gpw_pop[["X1"]] #2000 pop density estimate
+gpw_pop2 <- gpw_pop[["X2"]] #2005 pop density estimate
+gpw_pop3 <- gpw_pop[["X3"]] #2010 pop density estimate
+gpw_pop4 <- gpw_pop[["X4"]] #2015 pop density estimate
+gpw_pop5 <- gpw_pop[["X5"]] #2020 pop density estimate
+
+gpw_pop = stack(gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
+gpw_pop = mean(gpw_pop)
+
+gpw_pop <- reclassify(gpw_pop,rcl = c(NA,NA,0))
+gpw_pop <- spatial_sync_raster(gpw_pop,bco2, method = "ngb", size_only = FALSE, verbose = T)
+
+# emission per capita
+# bco2_adj_for_pop <- bco2/(gpw_pop+0.00001)
+# bco2_adj_for_pop <- bco2/(gpw_pop+1)
+bco2_adj_for_pop <- bco2/gpw_pop
+bco2_adj_for_pop[!is.finite(bco2_adj_for_pop)] <- NA
+bco2_adj_for_pop
+
+# par(mfrow = c(3,1))
+# plot(log10(gpw_pop+1), col = matlab.like(100), main = bquote('Avegrage population count 2000-2020,  log(pop ' *km^-2*'+1)'))
+# plot(log10(bco2), col = matlab.like(100), main = bquote('Anthropogenic Emissions, ('*CO[2]* '+' *CH[4]* '+' *N[2]* 'O+BC: kg ' *m^-2~y^-1*')'))
+# plot(log10(bco2_adj_for_pop), col = matlab.like(100), main = bquote('Anthropogenic Emissions per capita, ('*CO[2]* '+' *CH[4]* '+' *N[2]* 'O+BC: kg ' *m^-2~y^-1*')'))
+# 
+# pdf(paste0("/Users/", dir, "/Desktop/population_density_2000-2020.pdf", height = 5, width = 8.3)
+# par(mfrow = c(1,1))
+# plot(log10(gpw_pop+1), col = matlab.like(100), main = bquote('Avegrage population count 2000-2020,  log10(pop ' *km^-2*'+1)'), axes = F)
+# # map(add = T, col = "lightgray", cex = 0.01)
+# degAxis(1); degAxis(2, las = 2)
+# dev.off()
+
+# xlab = bquote('Emissions per capita  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')')
+
+rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 
 ##############################################################
 ### Single BCE layer 1980-2017. No longer used in analysis ###
 ##############################################################
-# bco2 <- raster("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #Just BC
+# bco2 <- raster(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHG_ts_products/BCEMAN_sum_Jan 31.grd") #Just BC
 
 # par(mfrow = c(2,1))
 # ghg = color.palette(c("white", "red", "black"), space="rgb")
@@ -78,23 +110,21 @@ df_80 = subset(df, cum_percentage <= 90)
 # pdf("Anomaly.pdf", height = 10, width = 10.6)
 # par(mfrow = c(3,2))
 # change = color.palette(c("blue", "white", "red"), space="rgb")
-# anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp26"]]
+# anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp26"]]
 # anomaly <- spatial_sync_raster(anomaly,bco2, method = "ngb", size_only = F, verbose = T)
 # plot(anomaly, col = change(100), zlim = c(-20.5,20.5), main = "RCP26, Anomaly"); map(add = T)
 # plot(abs(anomaly), col = change(100),  zlim = c(0,21), main = "RCP26, Absolute Anomaly"); map(add = T)
 # 
-# anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp45"]]
+# anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp45"]]
 # anomaly <- spatial_sync_raster(anomaly,bco2, method = "ngb", size_only = F, verbose = T)
 # plot(anomaly, col = change(100), zlim = c(-20.5,20.5),main = "RCP45, Anomaly"); map(add = T)
 # plot(abs(anomaly), col = change(100),  zlim = c(0,21), main = "RCP45, Absolute Anomaly"); map(add = T)
 # 
-# anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp85"]]
+# anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp85"]]
 # anomaly <- spatial_sync_raster(anomaly,bco2, method = "ngb", size_only = F, verbose = T)
 # plot(anomaly, col = change(100), zlim = c(-20.5,20.5),main = "RCP85, Anomaly"); map(add = T)
 # plot(abs(anomaly), col = change(100),  zlim = c(0,21), main = "RCP85, Absolute Anomaly"); map(add = T)
 # dev.off()
-
-rm(color.palette, pal, steps)
 
 ######################################################
 ### select climate anomaly data, pick rcp scenario ###
@@ -104,16 +134,16 @@ scenario = function(clim_anom, rcp){
   
   clim_anom = "ensemble_2"
   rcp = "RCP8.5"
-
-  setwd("/Users/ktanaka/clim_geo_disp/data")
+  
+  setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
   
   #MPI_ESM RCP-based anomalies - only single time period 2020-2100, can modify baseline and future time frame
   if (clim_anom == "original") {
     
-    # anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp26"]]
-    # anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp45"]]
-    anomaly <- stack("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp85"]]
+    # anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp26"]]
+    # anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd")[["MPI_rcp45"]]
+    anomaly <- stack(paste0("/Users/", dir, "/Desktop/climate/KV_climate/climate_impacts_2019/data/impacts/temperature/anomally_products/MPI_ESM_future_anom_Jan 31.grd"))[["MPI_rcp85"]]
     
   }
   
@@ -128,17 +158,9 @@ scenario = function(clim_anom, rcp){
   anomaly <- spatial_sync_raster(anomaly, bco2, method = "ngb", size_only = F, verbose = T)
   anomaly <- abs(anomaly) # make absolute or not absolute anomally
   
-  df = anomaly@data@values
-  df = sort(df, decreasing = T)
-  df = as.data.frame(df)
-  df$ID = seq(1:dim(df)[1])
-  df_sub = subset(df, df > 3)
-  dim(df_sub)[1]/dim(df)[1]
-  plot(df$df, axes = F, pch = ".", xlab = "", ylab = "")
-  box(bty = "l"); axis(1); axis(2, las = 2) 
-  
   raw_ratio <- 
-    stack(bco2, anomaly) %>% 
+    stack(bco2, anomaly) %>%
+    # stack(bco2_adj_for_pop, anomaly) %>%
     rasterToPoints() %>% 
     data.frame() %>% 
     mutate(BCE = .[[3]], anomaly =.[[4]]) %>% 
@@ -147,18 +169,78 @@ scenario = function(clim_anom, rcp){
     dplyr::select(x, y, BCE, anomaly) %>% 
     mutate(ratio = BCE / anomaly) 
   
-  # raw_ratio$BCE = scale(raw_ratio$BCE)
-  # raw_ratio$anomaly = scale(raw_ratio$anomaly)
+  raw_ratio <- raw_ratio[!is.na(raw_ratio$anomaly),]
+  rm(anomaly, bco2, bco2_adj_for_pop)
+  
+  # #if you want to rescale temp and emissions 0-1
+  # range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+  # raw_ratio$anomaly_01 = range01(raw_ratio$anomaly)
+  # raw_ratio$BCE_01 = range01(raw_ratio$BCE)
+  # 
+  # #plot emissions/temp ratio
+  # t = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = anomaly), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") + 
+  #   ggtitle("temp")+
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # e = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = BCE), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") + 
+  #   ggtitle("emissions")+
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # r1 = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = BCE/anomaly), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") + 
+  #   ggtitle("emissions/temp") +
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # r2 = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = anomaly/BCE), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") + 
+  #   ggtitle("temp/emissions") +
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # r3 = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = log(BCE/anomaly)), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") +
+  #   ggtitle("log(emissions/temp)") +
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # r4 = ggplot(raw_ratio) +
+  #   geom_raster(aes(x = x, y = y, fill = log(anomaly/BCE)), show.legend = T) +
+  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
+  #   scale_x_continuous(expand = c(-0, 0), "") +
+  #   scale_y_continuous(expand = c(-0, 0), "") + 
+  #   ggtitle("log(temp/emissions)") +
+  #   theme(legend.position = "bottom", legend.justification = c(1,0))
+  # 
+  # gridExtra::grid.arrange(t, e, r1, r2, r3, r4, ncol = 3)
   
   # rise
-  rise <- (max(raw_ratio$anomaly, na.rm = T) - min(raw_ratio$anomaly, na.rm = T) )
+  rise <- (max(raw_ratio$anomaly, na.rm = T) - min(raw_ratio$anomaly, na.rm = T))
   
   #run
   run <- (max(raw_ratio$BCE, na.rm = T)  - min(raw_ratio$BCE, na.rm = T))
   
   # slope
   slope = rise / run
-  slope
+  round(slope, 2)
+  
+  rm(rise, run)
   
   ### Convert disparity to point file ###
   
@@ -166,7 +248,7 @@ scenario = function(clim_anom, rcp){
   #raw_ratio$disparity <- -(((slope*raw_ratio$BCE) + (-1*raw_ratio$anomaly + 0))/(sqrt((slope^2)-(1^2)))) #this one works!
   # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt((slope^2)-(1^2))) # so does this one
   raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-(1^2)))) # changed to abs(sqrt(()))
-  
+
   # turn in to point file to detect overlap with regions of interest
   disparity <- st_as_sf(x = raw_ratio, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
   # summary(disparity)
@@ -185,13 +267,10 @@ scenario = function(clim_anom, rcp){
   # low = matlab.like(10)[10]
   # high = matlab.like(10)[1]
   
-  # Original color scheme
-  # high = "red"
-  # low = "black"
-
   ratio = raw_ratio[which(complete.cases(raw_ratio$disparity)),]
   positive = round(dim((subset(ratio, disparity > 0)))[1]/dim(ratio)[1], 3)
   negative = round(dim((subset(ratio, disparity < 0)))[1]/dim(ratio)[1], 3)
+  positive; negative
   
   if (clim_anom == "mpi_1") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2006-2055 \nHistorical Baseline: 1956-2005")
   if (clim_anom == "mpi_2") label = paste0("Model: MPI-ESM-MR \nExperiment: ", rcp, " \n21st Century Period: 2050-2099 \nHistorical Baseline: 1956-2005)")
@@ -203,35 +282,32 @@ scenario = function(clim_anom, rcp){
   
   ### Set Universal Color Scale ###
   disparity_limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)) 
-
+  disparity_limits
+  
   # input x y plot
   xy_plot <-
     ggplot(raw_ratio %>% 
              sample_frac(1)) +
     geom_point(aes(x = BCE, y = anomaly, color = disparity),
-               size = 2, #originally 4
-               alpha = 0.5, #originally 0.6
-               shape = 21, #originally 21
+               size = 4, 
+               alpha = 0.5, 
+               shape = 21,
                show.legend = T) +
     geom_abline(
       intercept = min(raw_ratio$anomaly, na.rm = T),
-      # color = "white",
+      color = "black",
       slope = slope) +
-    
     scale_color_gradientn(colours = c("cyan", "black", "red"), 
-                          values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
-                          # values = scales::rescale(c(-0.5, -0.11, 0, 0.11, 0.5)),
+                          values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
                           limits = disparity_limits,
-                          name = "") + 
-    
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0)) +
+                          name = "LCDI") + 
+    scale_x_continuous(expand = c(0,0), limits = c(0, 4.92)) +
+    scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
     xlab(xlab) +
-    ylab(expression(paste('Absolute Near-surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
-    # xlab(bquote('Greenhouse Emissions (kg ' *m^-2~y^-1*')')) + 
+    ylab(expression(paste('Surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
     # coord_fixed(ratio = 1/slope) +
     theme_pubr() +
-    theme(legend.position = c(0.1, 0.9), 
+    theme(legend.position = c(0.1, 0.85), 
           # title = element_text(colour = "white"),
           # axis.text = element_text(color = "white"),
           # axis.title = element_text(color = "white"),
@@ -245,23 +321,60 @@ scenario = function(clim_anom, rcp){
           text = element_text(size = 15)) + 
     annotate("text",
              x = Inf,
-             y = -Inf,
+             y = Inf,
              hjust = 1,
-             vjust = -0.5,
+             vjust = 1,
+             color = "black",
              size = 5,
              label = label)
   
+  xy_plot_main_text <-
+    ggplot(raw_ratio %>% 
+             sample_frac(0.6)) +
+    geom_point(aes(x = BCE, y = anomaly, color = disparity),
+               size = 6,
+               alpha = 0.6,
+               shape = 21) +
+      geom_abline(
+        intercept = min(raw_ratio$anomaly, na.rm = T),
+        slope = slope) +
+      
+      scale_color_gradientn(colours = c("cyan", "black", "red"), 
+                            values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                            limits = disparity_limits,
+                            name = "Disparity") + 
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) +
+      xlab(bquote('Emissions  (kg ' *m^-2~y^-1*')')) +
+      ylab(expression(paste('Temperature Anomaly (',~degree,'C)', sep = ''))) + 
+      theme_bw(I(20)) +
+      theme(legend.position = "none", 
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.background = element_blank()) 
+  
+  xy_plot_main_text_blank <-
+    ggplot(raw_ratio %>% sample_frac(0.6), aes(x = BCE, y = anomaly)) + 
+    geom_blank() + 
+    geom_abline(intercept = min(raw_ratio$anomaly, na.rm = T), slope = slope) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    xlab(bquote('Emissions  (kg ' *m^-2~y^-1*')')) +
+    ylab(expression(paste('Temperature Anomaly (',~degree,'C)', sep = ''))) + 
+    theme_bw(I(20)) +
+    theme(legend.position = "none", 
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank()) 
+
   # spatial plot
   world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
   
   map_plot <-
     ggplot(raw_ratio) +
-    # geom_tile(aes(x = x, y = y, fill = disparity), show.legend = T) +
     geom_raster(aes(x = x, y = y, fill = disparity), show.legend = T) +
     geom_sf(data = world, fill = NA, size = 0.15, color = "lightgray") +
-    # coord_equal() + 
     scale_fill_gradientn(colours = c("cyan", "black", "red"), 
-                         # values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
                          # values = scales::rescale(c(-0.5, -0.11, 0, 0.11, 0.5)),
                          limits = disparity_limits,
                          name = "") +
@@ -269,7 +382,8 @@ scenario = function(clim_anom, rcp){
     scale_y_continuous(expand = c(-0.005, 0), "") +
     ggtitle(label) +
     theme_pubr() + 
-    theme(# axis.title.x = element_blank(),
+    theme(
+      # axis.title.x = element_blank(),
       # axis.title.y = element_blank(),
       # text = element_text(size = 6.5),
       # axis.text.x = element_blank(),
@@ -277,19 +391,62 @@ scenario = function(clim_anom, rcp){
       legend.position = "right",
       legend.justification = c(1, 0))
   
-  # pdf("/Users/ktanaka/Desktop/modified_disparity_legend.pdf", height = 2, width = 1)
-  # legend <- cowplot::get_legend(map_plot)
-  # grid::grid.newpage()
-  # grid::grid.draw(legend)
-  # dev.off()
+  library(ggdark)
   
-  setwd("/Users/ktanaka/Desktop")
+  map_plot_main_text <-
+    ggplot(raw_ratio) +
+    geom_raster(aes(x = x, y = y, fill = disparity), show.legend = T) +
+    geom_sf(data = world, fill = NA, size = 0.15, color = "lightgray") +
+    scale_fill_gradientn(colours = c("cyan", "black", "red"), 
+                         values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
+                         limits = disparity_limits,
+                         name = "Disparity") +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(-0.01, 0)) +
+    theme_void(I(15)) +
+    theme(legend.position = "bottom", legend.justification = c(0.99,0.01))+ 
+    guides(fill = guide_colorbar(title.position = "bottom", 
+                                 title.vjust = 0.9,
+                                 title.hjust = 0.5,
+                                 frame.linewidth = 1,
+                                 frame.colour = "black", # draw border around the legend
+                                 barwidth = 10, barheight = 1.5)) 
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_2a_blank.pdf"), height = 5, width = 5)
+  print(xy_plot_main_text_blank)
+  dev.off()
+
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_2a.pdf"), height = 5, width = 5)
+  print(xy_plot_main_text)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_2a.pdf"), height = 5, width = 5)
+  p = ggdraw() +
+    draw_plot(xy_plot_main_text, x = 0, y = 0, width = 0.9, height = 0.9) + 
+    draw_plot_label(label = "a", size = 25, x = 0, y = 1)
+  print(p)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_2b.pdf"), height = 5, width = 9.5)
+  p = ggdraw() +
+    draw_plot(map_plot_main_text, x = 0.02, y = 0, width = 0.98, height = 0.98) + 
+    draw_plot_label(label = "b", size = 30, x = 0, y = 1)
+  print(p)
+  dev.off()
+  
+  png(paste0("/Users/", dir, "/Desktop/modified_disparity_legend.png"), height = 2, width = 4, units = "in", res = 500)
+  legend <- cowplot::get_legend(map_plot_main_text)
+  grid::grid.newpage()
+  grid::grid.draw(legend)
+  dev.off()
+  
+  setwd(paste0("/Users/", dir, "/Desktop"))
   
   if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_xy.pdf", height = 5, width = 6)
   if (clim_anom == "mpi_1") pdf(paste0("Disparity_2006-2055_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
   if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050-2099_MPI_xy_", rcp , ".pdf"), height = 5, width = 6)
-  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_XY_", rcp , ".pdf"), height = 6.5, width = 6.5)
-  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_XY_", rcp , ".pdf"), height = 6.5, width = 6.5, bg = "transparent")
+  if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_XY_", rcp , ".pdf"), height = 6, width = 6)
+  if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_XY_", rcp , ".pdf"), height = 6, width = 6)
   
   print(xy_plot)  
   
@@ -305,55 +462,99 @@ scenario = function(clim_anom, rcp){
   
   dev.off()
   
+
   # plotting inputs
   hist_carbon <- 
     ggplot(raw_ratio) + geom_histogram(aes(BCE)) +   
     ylab("") +
-    xlab("Carbon (g/m2)") +
+    xlab("Emissions (kg/m2)") +
     theme_pubr()
   
   map_carbon <-
     ggplot(raw_ratio) +
-    geom_raster(aes(x = x, 
-                    y = y, 
-                    fill = BCE), # when inputs are raw
-                show.legend = T) +
+    geom_raster(aes(x = x, y = y, fill = BCE), show.legend = T) +
     geom_sf(data = world, fill = NA, size = .1,color = "gray")+
     scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
-                         # values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
-                         # limits = disparity_limits,
                          name = bquote('kg ' *m^-2~y^-1*''))+
-    coord_sf() +
-    scale_x_continuous(expand = c(-0.005, 0)) +
-    scale_y_continuous(expand = c(-0.005, 0)) +
+    coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+    # coord_sf() +
+    scale_x_continuous(expand = c(-0, 0)) +
+    scale_y_continuous(expand = c(-0, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
           legend.position = "bottom",
-          legend.justification = c(1, 0))+ 
-    ggtitle(bquote('Anthropogenic Emissions ('*CO[2]* '+' *CH[4]* '+' *N[2]* 'O+BC)'))
+          legend.justification = c(1, 0))
   
   map_carbon_log10 <-
     ggplot(raw_ratio) +
-    geom_raster(aes(x = x, 
-                    y = y, 
-                    fill = log10(BCE)), # when inputs are raw
-                show.legend = T) +
+    geom_raster(aes(x = x, y = y, fill = log10(BCE)), show.legend = T) +
     geom_sf(data = world, fill = NA, size = .1, color = "white")+
     scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
-                         # values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
-                         # limits = disparity_limits,
                          name = bquote('log10(kg ' *m^-2~y^-1*')'))+
-    coord_sf() +
-    scale_x_continuous(expand = c(-0.005, 0)) +
-    scale_y_continuous(expand = c(-0.005, 0)) +
+    coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+    # coord_sf() +
+    scale_x_continuous(expand = c(-0, 0)) +
+    scale_y_continuous(expand = c(-0, 0)) +
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
           legend.position = "bottom",
-          legend.justification = c(1, 0))+ 
-    ggtitle(bquote('Anthropogenic Emissions ('*CO[2]* '+' *CH[4]* '+' *N[2]* 'O+BC)'))
+          legend.justification = c(1, 0))
   
+  map_carbon_main_text <-
+    ggplot(raw_ratio) +
+    geom_raster(aes(x = x, 
+                    y = y, 
+                    fill = log10(BCE+1)), # when inputs are raw
+                show.legend = T) +
+    geom_sf(data = world, fill = NA, size = .1,color = "gray")+
+    scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                         values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
+                         name = bquote('Emissions, log10(kg ' *m^-2~y^-1*'+1)'))+
+    coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+    # coord_sf() +
+    scale_y_continuous(expand = c(-0.01, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    theme_void(I(15)) +
+    theme(legend.position = "bottom", legend.justification = c(0.9, 0.1)) + 
+    guides(fill = guide_colorbar(title.position = "bottom", 
+                                 title.vjust = 1, 
+                                 title.hjust = 1,
+                                 frame.colour = "black", # draw border around the legend
+                                 barwidth = 15, 
+                                 barheight = 1.5)) 
+  
+  map_carbon_main_text_b <-
+    ggplot(raw_ratio %>% 
+             sample_frac(1)) +
+    geom_point(aes(x = log10(BCE+1), y = y, color = BCE),
+               size = 4, 
+               alpha = 0.5, 
+               shape = 20,
+               show.legend = T) +
+    scale_color_gradientn(colours = c( "black", "cyan", "red"), 
+                          values = scales::rescale(c(-0.5, -0.49, 0, 0.0001, 0.5)),
+                          name = "")+
+    scale_x_continuous(expand = c(0,0)) +
+    ylim(-90,90) + 
+    ylab(expression(paste('Latitude (',~degree,')', sep = ''))) + 
+    xlab(bquote('log10(kg ' *m^-2~y^-1*'+1)')) + 
+    theme_pubr() + 
+    theme(legend.position = "none", 
+          axis.title.y = element_text(margin = margin(t = 0, r = -10, b = 0, l = 0)))
+  
+  lat_mean = aggregate(raw_ratio$BCE, list(raw_ratio$y), mean)
+  colnames(lat_mean) <- c("Lat", "BCE")
+  
+  map_carbon_main_text_b <- 
+    ggplot(lat_mean, aes(x="", y=Lat, fill=BCE)) + 
+    geom_raster() + 
+    coord_cartesian(ylim = range(raw_ratio$y)) +
+    theme_void(I(10)) + 
+    theme(legend.position="none") + 
+    scale_fill_gradientn(colours = c( "black", "cyan", "red"), name = "")
+
   hist_anomlay <- 
     ggplot(raw_ratio) + geom_histogram(aes(anomaly)) + 
     ylab("") + xlab("Temperature anomaly (deg C)") +
@@ -361,7 +562,7 @@ scenario = function(clim_anom, rcp){
   
   if (clim_anom == "ensemble_1") title = paste0("Experiment: ", rcp, "\n21st century period: 2006-2055")
   if (clim_anom == "ensemble_2") title = paste0("Experiment: ", rcp, "\n21st century period: 2050-2099")
-
+  
   map_anomaly <-
     ggplot(raw_ratio) +
     geom_raster(aes(x = x, 
@@ -378,21 +579,119 @@ scenario = function(clim_anom, rcp){
     theme_pubr() +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank(), 
-          legend.position = "right",
+          legend.position = "bottom",
           legend.justification = c(1, 0))+ 
-      ggtitle(title)
+    ggtitle(title)
   
-  # pdf("/Users/ktanaka/Dropbox/PAPER climate geographic disparities/figures/supplemental/clim_anomaly_legend.pdf", height = 2, width = 1)
+  map_anomaly_main_text <-
+    ggplot(raw_ratio) +
+    geom_raster(aes(x = x, 
+                    y = y,
+                    fill = anomaly), # when inputs are raw
+                show.legend = T)+
+    geom_sf(data = world, fill = NA, size = .2, color = "lightgray")+
+    scale_fill_gradientn(colours = c("black", "cyan", "red"), 
+                         breaks = c(2,4,6,8,10),
+                         expression(paste('Surface temperature anomaly (',~degree,'C)', sep = ''))) +
+    coord_sf() +
+    scale_y_continuous(expand = c(-0.01, 0)) +
+    scale_x_continuous(expand = c(0, 0)) +
+    theme_void(I(15)) +
+    theme(legend.position = "bottom",
+          legend.justification = c(0.99, 0)) + 
+    guides(fill = guide_colorbar(title.position = "left", 
+                                 title.vjust = 1, 
+                                 title.hjust = 0.5,
+                                 frame.colour = "black", # draw border around the legend
+                                 barwidth = 10, 
+                                 barheight = 1.5)) 
+  
+  map_anomaly_main_text_b <-
+    ggplot(raw_ratio %>% 
+             sample_frac(1)) +
+    geom_point(aes(x = anomaly, y = y, color = anomaly),
+               size = 4, 
+               alpha = 0.5, 
+               shape = 20,
+               show.legend = T) +
+    scale_color_gradientn(colours = c( "black", "cyan", "red"), 
+                          name = "")+
+    scale_x_continuous(expand = c(0,0)) +
+    # scale_y_continuous(expand = c(0,0)) +
+    ylim(-90,90) + 
+    ylab(expression(paste('Latitude (',~degree,')', sep = ''))) + 
+    xlab(expression(paste('(',~degree,'C)', sep = ''))) + 
+    theme_pubr() + 
+    theme(legend.position = "none", 
+          axis.title.y = element_text(margin = margin(t = 0, r = -10, b = 0, l = 0)))
+  
+  lat_mean = aggregate(raw_ratio$anomaly, list(raw_ratio$y), mean)
+  colnames(lat_mean) <- c("Lat", "anomaly")
+  
+  map_anomaly_main_text_b <- 
+    ggplot(lat_mean, aes(x="", y=Lat, fill=anomaly)) + 
+    geom_raster() + 
+    coord_cartesian(ylim = range(raw_ratio$y)) +
+    theme_void(I(10)) + 
+    theme(legend.position="none") + 
+    scale_fill_gradientn(colours = c( "black", "cyan", "red"), name = "")
+  
+  # pdf(paste0("/Users/", dir, "/Desktop/clim_anomaly_legend.pdf"), height = 2, width = 1)
   # legend <- cowplot::get_legend(map_anomaly)
   # grid::grid.newpage()
   # grid::grid.draw(legend)
   # dev.off()
   
-  pdf("Emissions.pdf", height = 4, width = 12)
+  # png(paste0("/Users/", dir, "/Desktop/emissions_legend.png"), units = "in", res = 500, height = 1, width = 3.2)
+  # legend <- cowplot::get_legend(map_carbon_main_text)
+  # grid::grid.newpage()
+  # grid::grid.draw(legend)
+  # dev.off()
   
-  p = gridExtra::grid.arrange(map_carbon, map_carbon_log10, ncol = 2)
-  # map_carbon
+  pdf("~/Desktop/Emissions.pdf", height = 6, width = 17)
+  p = ggdraw() +
+    draw_plot(map_carbon, x = 0, y = 0, width = 0.5, height = 1) +
+    draw_plot(map_carbon_log10, x = 0.5, y = 0, width = 0.5, height = 1) +
+    draw_plot_label(label = c("a", "b"), size = 25, x = c(0, 0.5), y = c(1, 1))  
+  print(p)
+  dev.off()
   
+  pdf("~/Desktop/Emissions.pdf", height = 4, width = 6)
+  print(map_carbon_log10)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_1a.pdf"), height = 3.5, width = 7)
+  print(map_carbon_main_text)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_1.pdf"), height = 7, width = 8)
+  p = ggdraw() +
+    draw_plot(map_carbon_main_text, x = 0, y = 0.5, width = 1, height = 0.49) +
+    draw_plot(map_anomaly_main_text, x = 0, y = 0, width = 1, height = 0.49) +
+    draw_plot_label(label = c("a", "b"), size = 25, color = "white",
+                    x = c(0.08, 0.08), y = c(1, 0.5))  
+  print(p)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_1_v2.pdf"), height = 7, width = 13)
+  p = ggdraw() +
+    draw_plot(map_carbon_main_text,    x = 0,    y = 0.5, width = 0.55, height = 0.45) +
+    draw_plot(map_carbon_main_text_b,  x = 0.51, y = 0.5, width = 0.25, height = 0.45) +
+    draw_plot(map_anomaly_main_text,   x = 0,    y = 0,   width = 0.55, height = 0.45) +
+    draw_plot(map_anomaly_main_text_b, x = 0.51, y = 0,   width = 0.25, height = 0.45) +
+    draw_plot_label(label = c("a", "c", "b", "d"), size = 25, color = c("white", "white", "black", "black"),
+                    x = c(0.07, 0.07, 0.5, 0.5), y = c(0.95, 0.45, 0.95, 0.45))  
+  print(p)
+  dev.off()
+  
+  pdf(paste0("/Users/", dir, "/Desktop/Figure_1_v3.pdf"), height = 7, width = 6)
+  p = ggdraw() +
+    draw_plot(map_carbon_main_text,    x = 0,    y = 0.5, width = 0.95, height = 0.5) +
+    draw_plot(map_carbon_main_text_b,  x = 0.91, y = 0.585, width = 0.045, height = 0.4001) +
+    draw_plot(map_anomaly_main_text,   x = 0,    y = 0,   width = 0.95, height = 0.5) +
+    draw_plot(map_anomaly_main_text_b, x = 0.91, y = 0.085,   width = 0.045, height = 0.4001) +
+    draw_plot_label(label = c("a", "b"), size = 25, color = c("white", "white"), x = c(0.04, 0.04), y = c(0.98, 0.48))  
+  print(p)
   dev.off()
   
   if (clim_anom == "original") pdf("Disparity_2020:2100_MPI_original_input.pdf", height = 8, width = 11)
@@ -400,13 +699,10 @@ scenario = function(clim_anom, rcp){
   if (clim_anom == "mpi_2") pdf(paste0("Disparity_2050:2099_MPI_input_", rcp , ".pdf"), height = 8, width = 11)
   if (clim_anom == "ensemble_1") pdf(paste0("Disparity_2006-2055_Ensemble_Anomaly_", rcp , ".pdf"), height = 5, width = 9)
   if (clim_anom == "ensemble_2") pdf(paste0("Disparity_2050-2099_Ensemble_Anomaly_", rcp , ".pdf"), height = 5, width = 9)
-  
-  # p = gridExtra::grid.arrange(map_anomaly, hist_anomlay, map_carbon, hist_carbon)
   map_anomaly
-  
   dev.off()
   
-   rm(map_anomaly, hist_anomlay, map_carbon, hist_carbon, high, low, disp_col, map_plot, xy_plot, anomaly, bco2, raw_ratio, rise, run, slope, world, p, scenario)
+  rm(map_anomaly, hist_anomlay, map_carbon, hist_carbon, high, low, disp_col, map_plot, xy_plot, anomaly, bco2, raw_ratio, rise, run, slope, world, p, scenario)
   
   
   ################################################
@@ -417,7 +713,7 @@ scenario = function(clim_anom, rcp){
   ### Terrestorial Biomes ###
   ###########################
   
-  shape <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
+  shape <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos"))  # read the shapefile in by name not the lack of .shp extension
   
   # shape <- ms_simplify(shape, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape <- shape %>% st_as_sf()  
@@ -457,14 +753,14 @@ scenario = function(clim_anom, rcp){
   #####################
   
   #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
-  shape_MEOW <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
+  shape_MEOW <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast"))  
   
   # shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape_MEOW <- shape_MEOW %>% st_as_sf()  
-
+  
   # clip out marine ecoregions overlapping on land
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
-  load("/Users/ktanaka/clim_geo_disp/data/land_ocean_df.RData")
+  load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
   land <- land %>% st_set_precision(1000000) %>% lwgeom::st_make_valid()
   shape_MEOW <- st_difference(shape_MEOW, st_union(land))
   
@@ -490,7 +786,7 @@ scenario = function(clim_anom, rcp){
   ##########################
   
   #EEZ land_union shapefile
-  eez_land <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
+  eez_land <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410"))  # read the shapefile in by name not the lack of .shp extension
   
   # eez_land <- ms_simplify(eez_land, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
   
@@ -520,7 +816,7 @@ scenario = function(clim_anom, rcp){
   
   # ocean <- ne_download(type = "ocean", category = 'physical', returnclass = "sf") 
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
-  load("/Users/ktanaka/clim_geo_disp/data/land_ocean_df.RData")
+  load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
   
   
   # find intersections with disparity
@@ -537,7 +833,7 @@ scenario = function(clim_anom, rcp){
   
   rm(ocean, land, land_intersection,ocean_intersection)
   
-  setwd("/Users/ktanaka/Desktop")
+  setwd(paste0("/Users/", dir, "/Desktop"))
   save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, earth, 
        file = paste0("intersection_result_", clim_anom, "_", rcp, ".RData"))
   
