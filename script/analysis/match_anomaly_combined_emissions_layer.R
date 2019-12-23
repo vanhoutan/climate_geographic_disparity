@@ -1,4 +1,3 @@
-### Read in emissions/ anomaly data, calculate ratio and disparity as in "basic_index_2" ###
 rm(list = ls())
 
 dir = Sys.info()[7]
@@ -26,7 +25,7 @@ library(cowplot)
 ### Combined BC-CO2 emission layer (2000-2017) ###
 ##################################################
 load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
-xlab = "BC + CO2 emission (g/m-2)"
+xlab = "BC + CO2 emission (g m-2)"
 
 ##################################################
 ### Combined BC-CO2 emission layer (1970-2018) ###
@@ -34,18 +33,18 @@ xlab = "BC + CO2 emission (g/m-2)"
 load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
-xlab = "BC + CO2 emission (kg/m-2)"
+xlab = "BC + CO2 emission (kg m-2)"
 bco2*1000
 
-##################################################
-### Combined BC-CO2 emission layer (1970-2018) ###
-##################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC + CO2
+##################################################################################################
+### Combined CO2+BC+CH$+N2O emission layer (1970-2018) adjusted by average GWP20-100 yrs value ###
+##################################################################################################
+load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #load combined emissions data
 bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_ch4_n2o_adjusted
-bco2 = bco2 * 31556952 #how many seconds in one Gregorian calendar year = 365.2425 days
-xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')')
-xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')')
+bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
+xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')') #label A
+xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')') #label B
 
 rm(bc_co2_adjusted, bc_co2_ch4_n2o_adjusted, bc_co2_unadjusted)
 
@@ -88,7 +87,7 @@ bco2_adj_for_pop
 # degAxis(1); degAxis(2, las = 2)
 # dev.off()
 
-# xlab = bquote('Emissions per capita  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')')
+# xlab = bquote('Emissions per capita  (kg ' *m^-2~y^-1*')')
 
 rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 
@@ -137,7 +136,6 @@ scenario = function(clim_anom, rcp){
   
   setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
-  
   #MPI_ESM RCP-based anomalies - only single time period 2020-2100, can modify baseline and future time frame
   if (clim_anom == "original") {
     
@@ -170,100 +168,53 @@ scenario = function(clim_anom, rcp){
     mutate(ratio = BCE / anomaly) 
   
   raw_ratio <- raw_ratio[!is.na(raw_ratio$anomaly),]
-  rm(anomaly, bco2, bco2_adj_for_pop)
+  # rm(anomaly, bco2, bco2_adj_for_pop)
   
-  # #if you want to rescale temp and emissions 0-1
-  # range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
-  # raw_ratio$anomaly_01 = range01(raw_ratio$anomaly)
-  # raw_ratio$BCE_01 = range01(raw_ratio$BCE)
-  # 
-  # #plot emissions/temp ratio
-  # t = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = anomaly), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") + 
-  #   ggtitle("temp")+
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # e = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = BCE), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") + 
-  #   ggtitle("emissions")+
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # r1 = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = BCE/anomaly), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") + 
-  #   ggtitle("emissions/temp") +
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # r2 = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = anomaly/BCE), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") + 
-  #   ggtitle("temp/emissions") +
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # r3 = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = log(BCE/anomaly)), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") +
-  #   ggtitle("log(emissions/temp)") +
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # r4 = ggplot(raw_ratio) +
-  #   geom_raster(aes(x = x, y = y, fill = log(anomaly/BCE)), show.legend = T) +
-  #   scale_fill_gradientn(colours = c( "black", "cyan", "red"), "") +
-  #   scale_x_continuous(expand = c(-0, 0), "") +
-  #   scale_y_continuous(expand = c(-0, 0), "") + 
-  #   ggtitle("log(temp/emissions)") +
-  #   theme(legend.position = "bottom", legend.justification = c(1,0))
-  # 
-  # gridExtra::grid.arrange(t, e, r1, r2, r3, r4, ncol = 3)
-  
-  # rise
+  #if you want to rescale temp and emissions 0-1
+  range01 <- function(x, ...){(x - min(x, ...)) / (max(x, ...) - min(x, ...))}
+  raw_ratio$anomaly_01 = range01(raw_ratio$anomaly)
+  raw_ratio$BCE_01 = range01(raw_ratio$BCE)
+
+  # rise, A
   rise <- (max(raw_ratio$anomaly, na.rm = T) - min(raw_ratio$anomaly, na.rm = T))
   
-  #run
+  # run, B
   run <- (max(raw_ratio$BCE, na.rm = T)  - min(raw_ratio$BCE, na.rm = T))
   
   # slope
   slope = rise / run
   round(slope, 2)
   
-  rm(rise, run)
+  ####################################
+  ### calculate euclidean distance ###
+  ####################################
   
-  ### Convert disparity to point file ###
-  
-  # calculate orthogonal distance rather than residual
-  #raw_ratio$disparity <- -(((slope*raw_ratio$BCE) + (-1*raw_ratio$anomaly + 0))/(sqrt((slope^2)-(1^2)))) #this one works!
-  # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt((slope^2)-(1^2))) # so does this one
-  raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-(1^2)))) # changed to abs(sqrt(()))
+  # raw_ratio$disparity <- -(((slope*raw_ratio$BCE) + (-1*raw_ratio$anomaly + 0))/(sqrt((slope^2)-(1^2)))) #this one works!
+  raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt((slope^2)-(1^2))) # so does this one
+  # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-(1^2)))) # changed to abs(sqrt(()))
+  # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-1))) # changed to abs(sqrt(()))
+  # raw_ratio$disparity <- abs(rise*raw_ratio$BCE - run*raw_ratio$anomaly + min(raw_ratio$BCE, na.rm = T)) / sqrt(rise^2 + run^2)
 
-  # turn in to point file to detect overlap with regions of interest
-  disparity <- st_as_sf(x = raw_ratio, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
-  # summary(disparity)
   
-  # # color idea 1, come up with some nice contrasting color pattern
+  ########################################################################
+  ### turn in to point file to detect overlap with regions of interest ###
+  ########################################################################
+  
+  disparity <- st_as_sf(x = raw_ratio, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+  summary(disparity)
+  
+  ###############################
+  ### contrasting color ideas ###
+  ###############################
+  
   # disp_col = "Darkorange"
   # opposite(disp_col)
   # low = opposite(disp_col)[1]
   # high = opposite(disp_col)[2]
-  # 
-  # # color idea 2, use viridis theme
+
   # low = viridis(3)[3]
   # high = viridis(3)[1]
-  # 
-  # # or something else
+
   # low = matlab.like(10)[10]
   # high = matlab.like(10)[1]
   
@@ -291,17 +242,22 @@ scenario = function(clim_anom, rcp){
     geom_point(aes(x = BCE, y = anomaly, color = disparity),
                size = 4, 
                alpha = 0.5, 
-               shape = 21,
+               shape = 20,
                show.legend = T) +
     geom_abline(
       intercept = min(raw_ratio$anomaly, na.rm = T),
+      # intercept = 0,
       color = "black",
       slope = slope) +
-    scale_color_gradientn(colours = c("cyan", "black", "red"), 
-                          values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
-                          limits = disparity_limits,
-                          name = "LCDI") + 
+    scale_color_gradientn(
+      colours = c("cyan", "black", "red"),
+      # colours = c("black", "cyan", "red"), 
+      values = scales::rescale(c(-0.5, -0.05, 0, 0.05, 0.5)),
+      # values = scales::rescale(c(0, 0.01, 0.05, 0.3, 0.5, 1)),
+      limits = disparity_limits,
+      name = "LCDI") + 
     scale_x_continuous(expand = c(0,0), limits = c(0, 4.92)) +
+    # scale_x_continuous(expand = c(0,0), limits = c(0, 5000)) +
     scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
     xlab(xlab) +
     ylab(expression(paste('Surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
@@ -338,7 +294,6 @@ scenario = function(clim_anom, rcp){
       geom_abline(
         intercept = min(raw_ratio$anomaly, na.rm = T),
         slope = slope) +
-      
       scale_color_gradientn(colours = c("cyan", "black", "red"), 
                             values = scales::rescale(c(-0.5, -0.04, 0.1, 0.2, 0.5)),
                             limits = disparity_limits,
@@ -462,12 +417,11 @@ scenario = function(clim_anom, rcp){
   
   dev.off()
   
-
   # plotting inputs
   hist_carbon <- 
     ggplot(raw_ratio) + geom_histogram(aes(BCE)) +   
     ylab("") +
-    xlab("Emissions (kg/m2)") +
+    xlab("Emissions (kg m-2)") +
     theme_pubr()
   
   map_carbon <-
@@ -554,7 +508,7 @@ scenario = function(clim_anom, rcp){
     theme_void(I(10)) + 
     theme(legend.position="none") + 
     scale_fill_gradientn(colours = c( "black", "cyan", "red"), name = "")
-
+  
   hist_anomlay <- 
     ggplot(raw_ratio) + geom_histogram(aes(anomaly)) + 
     ylab("") + xlab("Temperature anomaly (deg C)") +
@@ -563,12 +517,31 @@ scenario = function(clim_anom, rcp){
   if (clim_anom == "ensemble_1") title = paste0("Experiment: ", rcp, "\n21st century period: 2006-2055")
   if (clim_anom == "ensemble_2") title = paste0("Experiment: ", rcp, "\n21st century period: 2050-2099")
   
+  # #plot emissions/temp ratio
+  map_ratio = ggplot(raw_ratio) +
+    geom_raster(aes(x = x, y = y, fill = BCE/anomaly), show.legend = T) +
+    geom_sf(data = world, fill = NA, size = .2, color = "lightgray")+
+    scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                         values = scales::rescale(c(-0.5, -0.4, -0.3, -0.2, 0.5)),
+                         bquote('Emissions ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*') / Surface Temperature Anomaly (°C)')) +
+    coord_sf(xlim = range(raw_ratio$x), ylim = range(raw_ratio$y)) +
+    scale_x_continuous(expand = c(-0, 0), "") +
+    scale_y_continuous(expand = c(-0, 0), "") +
+    theme_pubr() + 
+    theme(legend.position = "bottom", legend.justification = c(1,0))+
+    # theme(legend.position = "none")+ 
+    ggtitle(title)
+  
+  pdf(paste0("~/Desktop/Ratio_", title,".pdf"), height = 6, width = 9)
+  print(map_ratio)
+  dev.off()
+  
   map_anomaly <-
     ggplot(raw_ratio) +
     geom_raster(aes(x = x, 
                     y = y,
                     fill = anomaly), # when inputs are raw
-                show.legend = T)+
+                show.legend = T) +
     geom_sf(data = world, fill = NA, size = .2, color = "lightgray")+
     scale_fill_gradientn(colours = c("black", "cyan", "red"), 
                          limits = c(0,10.5),

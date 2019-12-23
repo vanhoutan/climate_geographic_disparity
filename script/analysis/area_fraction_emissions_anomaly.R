@@ -1,4 +1,3 @@
-### Read in emissions/ anomaly data, calculate ratio and disparity as in "basic_index_2" ###
 rm(list = ls())
 
 library(rnaturalearthdata)
@@ -21,16 +20,16 @@ library(colortools)
 library(viridis)
 library(ggdark)
 
-load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
-load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
+load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2 2000-2017
+load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2 1970-2018
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
 bco2*1000
 load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_ch4_n2o_adjusted
-bco2 = bco2 * 31556952 #how many seconds in one Gregorian calendar year = 365.2425 days
-xlab = "BC + CO2 + CH4 + N2O emission (kg/m-2)"
+bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
+xlab = "BC + CO2 + CH4 + N2O emission (kg m-2)"
 
 df = bco2@data@values
 df = sort(df, decreasing = T)
@@ -51,8 +50,8 @@ p1 = ggplot(df %>% sample_frac(0.1), aes(cum_area, cum_emission, color = cum_emi
   # geom_hline(yintercept = x, color = "gray", linetype = "dashed")+
   theme_pubr(I(20)) +
   # dark_theme_classic(I(20)) + 
-  ylab("Emissions (%)") + 
-  xlab("Total surface area (%)") + 
+  ylab("Emissions fraction (%)") + 
+  xlab("Area fraction (%)") + 
   theme(legend.position = "none",
         panel.grid.major = element_line(colour="lightgray", size = 0.1),
         panel.grid.minor = element_line(colour="lightgray", size = 0.1)) 
@@ -92,7 +91,7 @@ p2 = ggplot(df %>% sample_frac(0.1), aes(cum_area, anomaly, color = anomaly)) +
   theme_pubr(I(20)) +
   # dark_theme_classic(I(20)) +
   ylab(expression(paste('Temperature Anomaly (',~degree,'C)', sep = ''))) + 
-  xlab("Total surface area (%)") + 
+  xlab("Area fraction (%)") + 
   theme(legend.position = "none",
         panel.grid.major = element_line(colour="lightgray", size = 0.1),
         panel.grid.minor = element_line(colour="lightgray", size = 0.1)) 

@@ -1,3 +1,23 @@
+df1 = rnorm(10000, mean = 0)
+df2 = rnorm(10000, mean = 0)
+
+d = data.frame(df1, df2)
+
+a = max(d$df1)-min(d$df1)
+b = max(d$df2)-min(d$df2)
+
+d$distance = (-a*d$df1 + b*d$df2 + min(d$df1))/sqrt(a^2+b^2)
+
+qplot(d$df1, d$df2, color = d$distance) +
+  geom_abline(
+    intercept = min(d$df1, na.rm = T),
+    color = "black",
+    slope = a/b) + 
+  scale_color_gradientn(colours = c("cyan", "black", "red"), 
+                        values = scales::rescale(c(-0.5, -0.1, 0, 0.1, 0.5)),
+                        # limits = disparity_limits,
+                        name = "LCDI") 
+
 library(sf)
 library(sp)
 data(meuse)

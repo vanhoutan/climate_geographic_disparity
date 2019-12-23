@@ -1,3 +1,5 @@
+rm(list = ls())
+
 library(spatial.tools)
 library(ncdf4)
 library(tidyverse)  # data tidying
