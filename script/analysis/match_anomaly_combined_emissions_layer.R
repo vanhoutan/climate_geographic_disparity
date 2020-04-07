@@ -686,7 +686,7 @@ scenario = function(clim_anom, rcp){
   ### Terrestorial Biomes ###
   ###########################
   
-  shape <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos"))  # read the shapefile in by name not the lack of .shp extension
+  shape <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/TEOW"), layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
   
   # shape <- ms_simplify(shape, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape <- shape %>% st_as_sf()  
@@ -726,7 +726,7 @@ scenario = function(clim_anom, rcp){
   #####################
   
   #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
-  shape_MEOW <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast"))  
+  shape_MEOW <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/MEOW_2"), layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
   
   # shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape_MEOW <- shape_MEOW %>% st_as_sf()  
