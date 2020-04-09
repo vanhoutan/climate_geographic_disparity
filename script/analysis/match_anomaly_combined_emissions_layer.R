@@ -129,11 +129,12 @@ rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 ### select climate anomaly data, pick rcp scenario ###
 ######################################################
 
-scenario = function(clim_anom, rcp){
+scenario = function(clim_anom, rcp, variable){
   
-  clim_anom = "ensemble_2"
-  rcp = "RCP8.5"
-  
+  # clim_anom = c("ensemble_1", "ensemble_2")[2]
+  # rcp = c("RCP4.5", "RCP8.5")[2]
+  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+
   setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
   #MPI_ESM RCP-based anomalies - only single time period 2020-2100, can modify baseline and future time frame
@@ -145,9 +146,13 @@ scenario = function(clim_anom, rcp){
     
   }
   
+  # #CMIP5 ENSMN based anomalies
+  # if (clim_anom == "ensemble_1") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
+  # if (clim_anom == "ensemble_2") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
+  
   #CMIP5 ENSMN based anomalies
-  if (clim_anom == "ensemble_1") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
-  if (clim_anom == "ensemble_2") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
+  if (clim_anom == "ensemble_1") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " ", variable, " (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
+  if (clim_anom == "ensemble_2") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " ", variable, " (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
   
   #MPI_ESM_MR based anomalies
   if (clim_anom == "mpi_1") anomaly = stack(paste0("MPI-ESM-MR ", rcp, " anomaly (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
@@ -190,8 +195,8 @@ scenario = function(clim_anom, rcp){
   ####################################
   
   # raw_ratio$disparity <- -(((slope*raw_ratio$BCE) + (-1*raw_ratio$anomaly + 0))/(sqrt((slope^2)-(1^2)))) #this one works!
-  raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt((slope^2)-(1^2))) # so does this one
-  # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-(1^2)))) # changed to abs(sqrt(()))
+  # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt((slope^2)-(1^2))) # so does this one
+  raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-(1^2)))) # changed to abs(sqrt(()))
   # raw_ratio$disparity <- (raw_ratio$anomaly - (slope*raw_ratio$BCE + min(raw_ratio$anomaly, na.rm = T)))/(sqrt(abs((slope^2)-1))) # changed to abs(sqrt(()))
   # raw_ratio$disparity <- abs(rise*raw_ratio$BCE - run*raw_ratio$anomaly + min(raw_ratio$BCE, na.rm = T)) / sqrt(rise^2 + run^2)
 
@@ -544,7 +549,7 @@ scenario = function(clim_anom, rcp){
                 show.legend = T) +
     geom_sf(data = world, fill = NA, size = .2, color = "lightgray")+
     scale_fill_gradientn(colours = c("black", "cyan", "red"), 
-                         limits = c(0,10.5),
+                         # limits = c(0,10.5),
                          expression(paste('(',~degree,'C)', sep = ''))) +
     coord_sf() +
     scale_x_continuous(expand = c(-0.005, 0)) +
@@ -748,6 +753,7 @@ scenario = function(clim_anom, rcp){
   
   #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
   world <- ne_countries(scale = "large", returnclass = "sf") #worldwide country polygon
+  # world <- ms_simplify(world, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   
   # find intersections with disparity
   intersection_world <- st_intersection(disparity, world)
@@ -759,9 +765,9 @@ scenario = function(clim_anom, rcp){
   ##########################
   
   #EEZ land_union shapefile
-  eez_land <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410"))  # read the shapefile in by name not the lack of .shp extension
+  eez_land <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/EEZ_land_union"), layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
   
-  # eez_land <- ms_simplify(eez_land, keep = 0.05, keep_shapes = F) # simplify shapefile (saves computing time)
+  # eez_land <- ms_simplify(eez_land, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   
   eez_land <- eez_land %>% st_as_sf()  
   
@@ -791,6 +797,8 @@ scenario = function(clim_anom, rcp){
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
   load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
   
+  land <- ms_simplify(land, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+  ocean <- ms_simplify(ocean, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   
   # find intersections with disparity
   land_intersection <- st_intersection(disparity,land)
@@ -802,21 +810,37 @@ scenario = function(clim_anom, rcp){
   colnames(land_intersection)
   colnames(ocean_intersection)
   
+  land_intersection = land_intersection[,c("BCE", "anomaly", "ratio", "disparity", "geometry")]
+  ocean_intersection = ocean_intersection[,c("BCE", "anomaly", "ratio", "disparity", "geometry")]
+  
   earth <- rbind(land_intersection,ocean_intersection)
   
   rm(ocean, land, land_intersection,ocean_intersection)
   
   setwd(paste0("/Users/", dir, "/Desktop"))
   save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, earth, 
-       file = paste0("intersection_result_", clim_anom, "_", rcp, ".RData"))
+       file = paste0("intersection_result_", clim_anom, "_", rcp, "_", variable, ".RData"))
   
 }
 
+varaible = c("anomaly", "historical stdanom", "ensemble stdanom")
+
 # disparity = scenario("original")
-scenario("ensemble_1", "RCP4.5")
-scenario("ensemble_2", "RCP4.5")
-scenario("ensemble_1", "RCP8.5")
-scenario("ensemble_2", "RCP8.5")
+scenario("ensemble_1", "RCP4.5", "anomaly")
+scenario("ensemble_2", "RCP4.5", "anomaly")
+scenario("ensemble_1", "RCP8.5", "anomaly")
+scenario("ensemble_2", "RCP8.5", "anomaly")
+
+scenario("ensemble_1", "RCP4.5", "historical stdanom")
+scenario("ensemble_2", "RCP4.5", "historical stdanom")
+scenario("ensemble_1", "RCP8.5", "historical stdanom")
+scenario("ensemble_2", "RCP8.5", "historical stdanom")
+
+scenario("ensemble_1", "RCP4.5", "ensemble stdanom")
+scenario("ensemble_2", "RCP4.5", "ensemble stdanom")
+scenario("ensemble_1", "RCP8.5", "ensemble stdanom")
+scenario("ensemble_2", "RCP8.5", "ensemble stdanom")
+
 scenario("mpi_1", "RCP8.5")
 scenario("mpi_2", "RCP8.5")
 
