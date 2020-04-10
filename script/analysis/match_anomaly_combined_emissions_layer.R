@@ -133,7 +133,7 @@ scenario = function(clim_anom, rcp, variable){
   
   # clim_anom = c("ensemble_1", "ensemble_2")[2]
   # rcp = c("RCP4.5", "RCP8.5")[2]
-  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
 
   setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
@@ -693,7 +693,7 @@ scenario = function(clim_anom, rcp, variable){
   
   shape <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/TEOW"), layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
   
-  # shape <- ms_simplify(shape, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+  # shape <- ms_simplify(shape, keep = 0.0001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape <- shape %>% st_as_sf()  
   
   # assign names to biomes
@@ -788,6 +788,45 @@ scenario = function(clim_anom, rcp, variable){
   intersection_states <- st_intersection(disparity, states)
   rm(states)
   
+  ########################
+  ### Anthromes Biomes ###
+  ########################
+  
+  load(paste0("/Users/", dir, "/clim_geo_disp/data/anthrome_1.RData"))
+  
+  # anthrome <- ms_simplify(anthrome, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+  anthrome <- anthrome %>% st_as_sf() 
+  
+  # assign names to biomes
+  anthrome$layer <- as.factor(anthrome$layer)
+  anthrome$layer <- fct_recode(anthrome$layer, 
+                            Urban = "11",
+                            Dense_settlement = "12",
+                            Rice_villages = "21",
+                            Irrigated_villages = "22",
+                            Cropped_Pastoral_villages = "23",
+                            Pastoral_villages = "24",
+                            Rainfed_villages = "25",
+                            Rainfed_mosaic_villages = "26",
+                            Residential_irrigated_cropland = "31", 
+                            Residential_rainfed_mosaic = "32",
+                            Populated_irrigated_cropland = "33",
+                            Populated_rainfed_croplands = "34",
+                            Remote_croplands = "35",
+                            Residential_rangelads = "41",
+                            Populated_rangelands = "42",
+                            Remote_rangelands = "43",
+                            Populated_forests = "51",
+                            Remote_forests = "52",
+                            Wild_forests = "61",
+                            Sparse_trees = "62",
+                            Barren = "63"
+  )
+  
+  # find intersections with disparity
+  intersection_anthromes <- st_intersection(disparity, anthrome)
+  rm(anthrome)
+
   
   ########################
   #### Ocean vs. Land ####
@@ -818,7 +857,8 @@ scenario = function(clim_anom, rcp, variable){
   rm(ocean, land, land_intersection,ocean_intersection)
   
   setwd(paste0("/Users/", dir, "/Desktop"))
-  save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, earth, 
+  
+  save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, intersection_anthromes, earth, 
        file = paste0("intersection_result_", clim_anom, "_", rcp, "_", variable, ".RData"))
   
 }
