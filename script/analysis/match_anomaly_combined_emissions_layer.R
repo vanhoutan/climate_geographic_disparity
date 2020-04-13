@@ -47,6 +47,7 @@ bco2 = bc_co2_ch4_n2o_adjusted
 bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
 xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')') #label A
 xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')') #label B
+xlab = bquote('Net emissions  (kg ' *m^-2~y^-1*')') #label B
 
 rm(bc_co2_adjusted, bc_co2_ch4_n2o_adjusted, bc_co2_unadjusted)
 
@@ -133,9 +134,9 @@ rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 
 scenario = function(clim_anom, rcp, variable){
   
-  # clim_anom = c("ensemble_1", "ensemble_2")[2]
-  # rcp = c("RCP4.5", "RCP8.5")[2]
-  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
+  clim_anom = c("ensemble_1", "ensemble_2")[2]
+  rcp = c("RCP4.5", "RCP8.5")[1]
+  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
 
   setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
