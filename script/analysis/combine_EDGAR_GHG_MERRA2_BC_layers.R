@@ -138,12 +138,35 @@ for( t in 1:length(var)){
 
 n2o_mean = mean(ghg)
 
+###########
+### SO2 ###
+###########
+
+var <- list.files('/Users/ktanaka/Desktop/edgar/v432_SO2_TOTALS_nc/', pattern = '\\.nc$') # list all files in thel folder
+var <- paste0("/Users/ktanaka/Desktop/edgar/v432_SO2_TOTALS_nc/", var) # add parent directories
+
+emissions <- "emi_so2"
+
+ghg <- raster::stack() # build an empty stack to put the desired emission metric in to
+
+for( t in 1:length(var)){ # for each file that is year in a month
+  
+  filename <- var[t] # pull the first file,first year
+  year_month_read <- stack(filename, varname = emissions) # read it in as a raster
+  names(year_month_read) <- paste0(emissions,"_", gsub(".*Nx.\\s*|.nc4.*", "", filename)) # generate name: Emission_yearmonth
+  print(names(year_month_read)) # print in the loop to keep an eye on progress
+  ghg <- stack(ghg,year_month_read) # add to the timeseries stack
+  
+}
+
+so2_mean = mean(ghg)
 
 ###############################################################################################
 ### combine EDGAR v5.0 data and multiply non-co2 data according to average GTP20-100 values ###
+### April 10 2020, added SO2 with GTP(20) from doi:10.5194/acp-16-7451-2016                 ### 
 ###############################################################################################
 edgar = sum(co2_excl_mean, co2_org_mean, ch4_mean*40.5, n2o_mean*290.5)
-
+edgar = sum(co2_excl_mean, co2_org_mean, ch4_mean*40.5, n2o_mean*290.5, so2_mean*-92.625)
 
 ###############################################################################
 ### use bilinear interpolation method to resample BC on 0.1 by 0.1 deg grid ###
@@ -169,10 +192,11 @@ plot(log10(bc_co2_ch4_n2o_adjusted), col = matlab.like(100))
 ###################################
 ### save unified emission layer ###
 ###################################
-
 bc_co2_ch4_n2o_adjusted = readAll(bc_co2_ch4_n2o_adjusted)
 
 save(bc_co2_ch4_n2o_adjusted, file = "/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
+save(bc_co2_ch4_n2o_adjusted, file = "/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")
+
 
 
 
@@ -253,6 +277,22 @@ n2o = ggplot(n2o %>% sample_frac(1)) +
         legend.position = "right",
         legend.justification = c(1, 0))
 
+so2 = raster::rotate(so2_mean) %>% rasterToPoints() %>% data.frame()
+
+so2 = ggplot(so2 %>% sample_frac(1)) +
+  geom_raster(aes(x = x, y = y, fill = log10(layer)), show.legend = T) +
+  geom_sf(data = world, fill = NA, size = .1, color = "gray") +
+  scale_fill_gradientn(colours = c( "black", "cyan", "red"), 
+                       name = bquote('log10(kg ' *m^-2~s^-1*')')) +
+  coord_sf() +
+  scale_x_continuous(expand = c(-0, 0)) +
+  scale_y_continuous(expand = c(-0, 0)) +
+  theme_pubr() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "right",
+        legend.justification = c(1, 0))
+
 unified = bc_co2_ch4_n2o_adjusted %>% rasterToPoints() %>% data.frame()
 
 unified = ggplot(unified %>% sample_frac(1)) +
@@ -271,12 +311,13 @@ unified = ggplot(unified %>% sample_frac(1)) +
 
 pdf("~/Desktop/Figure_s.pdf", height = 8, width = 16)
 p = ggdraw() +
-  draw_plot(co2,    x = 0,   y = 0.5, width = 0.5, height = 0.5) +
-  draw_plot(bc,     x = 0.5, y = 0.5, width = 0.5, height = 0.5) +
-  draw_plot(ch4,    x = 0,   y = 0,   width = 0.5, height = 0.5) +
-  draw_plot(n2o,    x = 0.5, y = 0,   width = 0.5, height = 0.5) +
-  draw_plot_label(label = c("a", "c", "b", "d"), size = 25, 
-                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))  
+  draw_plot(co2,    x = 0,   y = 0.66, width = 0.5, height = 0.33) +
+  draw_plot(bc,     x = 0.5, y = 0.66, width = 0.5, height = 0.33) +
+  draw_plot(ch4,    x = 0,   y = 0.33,   width = 0.5, height = 0.33) +
+  draw_plot(n2o,    x = 0.5, y = 0.33,   width = 0.5, height = 0.33) +
+  draw_plot(so2,    x = 0.5, y = 0,   width = 0.5, height = 0.33) +
+  draw_plot_label(label = c("a", "c", "b", "d", "e"), size = 25, 
+                  x = c(0, 0, 0.5, 0.5, 0), y = c(1, 0.5, 1, 0.5, 1))  
 print(p)
 dev.off()
 

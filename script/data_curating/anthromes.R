@@ -25,14 +25,20 @@ class(r)
 
 plot(r, axes = T)
 
-gpw_pop <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_1_deg.nc"), varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 1 degree")
+b <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_1_deg.nc"), varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 1 degree")
 
-r = resample(r, gpw_pop, method = "ngb") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
+b <- stack(paste0("/Users/", dir, "/Desktop/gpw/gpw_v4_population_density_rev11_15_min.nc"), varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 15 arc-minutes")
+
+b = load("/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")
+
+
+r = resample(r, b, method = "ngb") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 plot(r, axes = T)
 
 anthrome <- rasterToPolygons(r, dissolve = F, digits = 0)
 
 save(anthrome, file = "/Users/ktanaka/Desktop/anthrome_1.RData")
+save(anthrome, file = "/Users/ktanaka/Desktop/anthrome_0.15.RData")
 
 p <- rasterToPolygons(r, dissolve = F, digits = 0)
 

@@ -40,6 +40,8 @@ bco2*1000
 ### Combined CO2+BC+CH$+N2O emission layer (1970-2018) adjusted by average GWP20-100 yrs value ###
 ##################################################################################################
 load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #load combined emissions data
+load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #load combined emissions data
+
 bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_ch4_n2o_adjusted
 bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
@@ -261,9 +263,9 @@ scenario = function(clim_anom, rcp, variable){
       # values = scales::rescale(c(0, 0.01, 0.05, 0.3, 0.5, 1)),
       limits = disparity_limits,
       name = "LCDI") + 
-    scale_x_continuous(expand = c(0,0), limits = c(0, 4.92)) +
+    # scale_x_continuous(expand = c(0,0), limits = c(0, 4.92)) +
     # scale_x_continuous(expand = c(0,0), limits = c(0, 5000)) +
-    scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
+    # scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
     xlab(xlab) +
     ylab(expression(paste('Surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
     # coord_fixed(ratio = 1/slope) +

@@ -358,13 +358,12 @@ rcp45_end = pre_combine("RCP4.5", "2050-2099", "anomaly")
 rcp85_mid = pre_combine("RCP8.5", "2006-2055", "anomaly")
 rcp85_end = pre_combine("RCP8.5", "2050-2099", "anomaly")
 
-
 plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   
-  # segment_size = 1
-  # col_size = 2
-  # font_size = 10
-  # var = "q_10"
+  segment_size = 1
+  col_size = 4
+  font_size = 10
+  var = "q_10"
   
   df = rbind(rcp45_mid, rcp45_end, rcp85_mid, rcp85_end)
   df = subset(df, type != "Countries_without_EEZ")
@@ -418,14 +417,14 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   Political_regions_median = median(df2$Disparity)
   Nation_states_median =     median(df3$Disparity)
   US_states_median =         median(df4$Disparity)
-  Anthromes_median =      median(df5$Disparity)
+  Anthromes_median =         median(df5$Disparity)
   
-  top = df1 %>% top_n(15, Disparity)
-  bottom = df1 %>% top_n(-15, Disparity)
+  top = df1 %>% top_n(8, Disparity)
+  bottom = df1 %>% top_n(-8, Disparity)
   df1 = tbl_df(bind_rows(top, bottom))
   
-  top = df2 %>% top_n(10, Disparity)
-  bottom = df2 %>% top_n(-10, Disparity)
+  top = df2 %>% top_n(8, Disparity)
+  bottom = df2 %>% top_n(-8, Disparity)
   df2 = tbl_df(bind_rows(top, bottom))
   
   top = df3 %>% top_n(25, Disparity)
@@ -436,8 +435,8 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   bottom = df4 %>% top_n(-25, Disparity)
   df4 = tbl_df(bind_rows(top, bottom))
   
-  top = df5 %>% top_n(25, Disparity)
-  bottom = df5 %>% top_n(-25, Disparity)
+  top = df5 %>% top_n(9, Disparity)
+  bottom = df5 %>% top_n(-9, Disparity)
   df5 = tbl_df(bind_rows(top, bottom))
   
   scientific <- function(x){
@@ -446,7 +445,8 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     library(scales)
     library(ggthemes)
     
-    ifelse(x==0, "0", parse(text = gsub("[+]", "", gsub("e", " %*% 10^", scientific_format()(x)))))
+    ifelse(x == 0, "0", parse(text = gsub("[+]", "", gsub("e", " %*% 10^", scientific_format()(x)))))
+  
   }
   
   df = rbind(df1, df2, df3, df4, df5)
@@ -466,7 +466,7 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     if (category_list[i] == "US_states") m = US_states_median
     if (category_list[i] == "Anthropogenic_biome") m = Anthromes_median
     
-    p =  subset(df, category == category_list[i]) %>% 
+    p = subset(df, category == category_list[i]) %>% 
       mutate(unit = fct_reorder(unit, Disparity)) %>% 
       ggplot() +
       geom_segment(aes(
@@ -480,9 +480,9 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
         color = Disparity,
         x = unit,
         y = median),
-        size = col_size) +
+        size = col_size, 
+        shape = 20) +
       coord_flip() +
-      facet_wrap(.~ category) + 
       geom_hline(yintercept = m, 
                  # linetype = "dashed", 
                  color = "lightgrey", 
@@ -498,8 +498,9 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
       xlab("") +
       ylab("") +
       theme_pubr() + 
-      scale_y_continuous(breaks=c(-4, -2, 0, 2, 4)) + 
-    theme(
+      scale_y_continuous(breaks = pretty(disparity_limits), 
+                         limits = range(pretty(disparity_limits))*1.1) + 
+      theme(
         strip.text.x = element_blank(),
         axis.ticks.y = element_blank(),
         # strip.background = element_blank(),
@@ -522,9 +523,29 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     #          vjust = -0.2,
     #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
     
-    if (i == 5) {
+    
+    
+    if (i %in% c(3,4)) {
       
-      p = p + theme(legend.position = c(0.9, 0.2))
+      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", data, "_", var, "_", category_list[i], ".pdf"), height = 8, width = 6)
+      p = p + theme(legend.position = "right")
+      print(p)
+      dev.off()    
+      
+    } else {
+      
+      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", data, "_", var, "_", category_list[i], ".pdf"), height = 4, width = 6)
+      p = p + theme(legend.position = "right")
+      print(p)
+      dev.off()      
+    }
+    
+    
+
+    
+    if (i == 4) {
+      
+      p = p + theme(legend.position = c(0.9, 0.1))
       
     } else {
       
@@ -533,7 +554,6 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     }
     
     plot_list[[i]] = p
-    
     
   }
   
@@ -548,13 +568,13 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   #                   x = c(0, 0.32, 0.32, 0.65), y = c(1, 1, 0.44, 1))  
   
   p = ggdraw() +
-    draw_plot(plot_list[[3]], x = 0, y = 0.33, width = 0.3, height = 0.66) +
-    draw_plot(plot_list[[2]], x = 0.32, y = 0.33, width = 0.3, height = 0.33) +
-    draw_plot(plot_list[[1]], x = 0.32, y = 0.66, width = 0.3, height = 0.33) +
-    draw_plot(plot_list[[4]], x = 0.65, y = 0.33, width = 0.3, height = 0.66) +
-    draw_plot(plot_list[[5]], x = 0, y = 0, width = 1, height = 0.33) + 
+    draw_plot(plot_list[[3]], x = 0,      y = 0,   width = 0.333, height = 1) +
+    draw_plot(plot_list[[2]], x = 0.333,  y = 0.69, width = 0.333, height = 0.31) +
+    draw_plot(plot_list[[1]], x = 0.333,  y = 0.38, width = 0.333, height = 0.31) +
+    draw_plot(plot_list[[5]], x = 0.333,  y = 0,   width = 0.333, height = 0.38) +
+    draw_plot(plot_list[[4]], x = 0.666,  y = 0,   width = 0.333, height = 1) + 
     draw_plot_label(label = c("a", "b", "c", "d", "e"), size = 40,
-                    x = c(0, 0.32, 0.32, 0.65, 0), y = c(1, 1, 0.66, 1, 0.33))  
+                    x = c(0, 0.32, 0.32, 0.32, 0.65), y = c(1, 1, 0.7, 0.4, 1))  
   
   print(p)
   
@@ -564,7 +584,7 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
 
 plot_ranking_tobether(12, 20, 4, 2, 18, "median")
 plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
-plot_ranking_tobether(18, 18, 4, 2, 18, "q_10")
+plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
 
 
 plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {

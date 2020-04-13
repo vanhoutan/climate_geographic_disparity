@@ -75,3 +75,45 @@ shape %>% ggplot() +
   theme(legend.position = "bottom")
 dev.off()
 
+
+load("/Users/ktanaka/clim_geo_disp/data/anthrome_0.15.RData")
+
+# anthrome <- ms_simplify(anthrome, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
+anthrome <- anthrome %>% st_as_sf() 
+
+# assign names to biomes
+anthrome$layer <- as.factor(anthrome$layer)
+anthrome$layer <- fct_recode(anthrome$layer, 
+                             Urban = "11",
+                             Dense_settlement = "12",
+                             Rice_villages = "21",
+                             Irrigated_villages = "22",
+                             Cropped_Pastoral_villages = "23",
+                             Pastoral_villages = "24",
+                             Rainfed_villages = "25",
+                             Rainfed_mosaic_villages = "26",
+                             Residential_irrigated_cropland = "31", 
+                             Residential_rainfed_mosaic = "32",
+                             Populated_irrigated_cropland = "33",
+                             Populated_rainfed_croplands = "34",
+                             Remote_croplands = "35",
+                             Residential_rangelads = "41",
+                             Populated_rangelands = "42",
+                             Remote_rangelands = "43",
+                             Populated_forests = "51",
+                             Remote_forests = "52",
+                             Wild_forests = "61",
+                             Sparse_trees = "62",
+                             Barren = "63"
+)
+
+pdf("~/Desktop/unit-anthrome.pdf", width = 10, height = 8)
+anthrome %>% ggplot() + 
+  geom_sf(aes(group = layer, fill = layer), color = "NA", show.legend = T) + 
+  scale_fill_viridis_d("") + 
+  theme_void() +
+  # dark_theme_classic() + 
+  guides(fill = guide_legend(nrow = 4), "") + 
+  theme(legend.position = "bottom")
+dev.off()
+
