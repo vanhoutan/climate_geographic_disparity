@@ -586,53 +586,58 @@ plot_ranking_tobether(12, 20, 4, 2, 18, "median")
 plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
 plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
 
-
 plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   
-  segment_size = 1
-  col_size = 2
-  n = 5
-  font_size = 10
-  stat = "q_10"
-  var = "Nation_states"
+  # segment_size = 1
+  # col_size = 2
+  # n = 5
+  # font_size = 10
+  # stat = "q_10"
+  # var = "Anthromes"
   
   df = rbind(rcp45_mid, rcp45_end, rcp85_mid, rcp85_end)
   df = subset(df, type != "Countries_without_EEZ")
   df$type = ifelse(df$type %in% c("Land", "Ocean"), "Ecoregions", df$type)
   df$type = ifelse(df$type %in% c("Global_Subregions"), "Political_regions", df$type)
   df$type = ifelse(df$type %in% c("Countries_with_EEZ"), "Nation_states", df$type) # choose between "Countries_without_EEZ" or "Countries_with_EEZ"
-
+  
   df1 = subset(df, type == "Ecoregions")
   df2 = subset(df, type == "Political_regions")
   df3 = subset(df, type == "Nation_states")
   df4 = subset(df, type == "US_States")
+  df5 = subset(df, type == "Anthromes")
   
   t1 = df1
   t2 = df2
   t3 = df3
   t4 = df4
+  t5 = df5
   
   colnames(t1) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t2) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t3) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t4) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
+  colnames(t5) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   
   df1 = aggregate(df1[, 2:5], list(df1$unit), mean)
   df2 = aggregate(df2[, 2:5], list(df2$unit), mean)
   df3 = aggregate(df3[, 2:5], list(df3$unit), mean)
   df4 = aggregate(df4[, 2:5], list(df4$unit), mean)
+  df5 = aggregate(df5[, 2:5], list(df5$unit), mean)
   
   colnames(df1)[1] = "unit"
   colnames(df2)[1] = "unit"
   colnames(df3)[1] = "unit"
   colnames(df4)[1] = "unit"
-  
+  colnames(df5)[1] = "unit"
+
   df1$category = "Ecoregions"
   df2$category = "Political_regions"
   df3$category = "Nation_states"
   df4$category = "US_States"
+  df5$category = "Anthromes"
   
-  df = rbind(df1, df2, df3, df4)
+  df = rbind(df1, df2, df3, df4, df5)
   
   if (stat == "median") {
     df$Disparity = df$median #rank by median
@@ -760,3 +765,5 @@ plot_ranking(var = "Political_regions", h = 4, w = 6, col_size = 3, segment_size
 plot_ranking(var = "Nation_states",     h = 5, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
 plot_ranking(var = "Nation_states",     h = 12, w = 10, col_size = 3, segment_size = 1, font_size = 10, n = 5, stat = "q_10")
 plot_ranking(var = "US_states",         h = 8, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
+plot_ranking(var = "Anthromes",         h = 4, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
+ 
