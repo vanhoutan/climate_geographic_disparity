@@ -166,17 +166,19 @@ so2_mean = mean(ghg)
 ### April 10 2020, added SO2 with GTP(20) from doi:10.5194/acp-16-7451-2016                 ### 
 ###############################################################################################
 co2_ch4_n2o_adjusted = sum(co2_excl_mean, co2_org_mean, ch4_mean*40.5, n2o_mean*290.5)
-co2_ch4_n2o_adjusted = readAll(co2_ch4_n2o_adjusted)
-save(co2_ch4_n2o_adjusted, file = "/Users/ktanaka/clim_geo_disp/output/CO2_CH4_N2O_Combined_1970-2018.RData")
+ge = readAll(co2_ch4_n2o_adjusted)
+ge = raster::rotate(ge)
+save(ge, file = "/Users/ktanaka/clim_geo_disp/output/CO2_CH4_N2O_Combined_1970-2018.RData")
 
 co2_ch4_n2o_so2_adjusted = sum(co2_excl_mean, co2_org_mean, ch4_mean*40.5, n2o_mean*290.5, so2_mean*-92.625)
-co2_ch4_n2o_so2_adjusted = readAll(co2_ch4_n2o_so2_adjusted)
-save(co2_ch4_n2o_so2_adjusted, file = "/Users/ktanaka/clim_geo_disp/output/CO2_CH4_N2O_SO2_Combined_1970-2018.RData")
+ge = readAll(co2_ch4_n2o_so2_adjusted)
+ge = raster::rotate(ge)
+save(ge, file = "/Users/ktanaka/clim_geo_disp/output/CO2_CH4_N2O_SO2_Combined_1970-2018.RData")
 
 ###############################################################################
 ### use bilinear interpolation method to resample BC on 0.1 by 0.1 deg grid ###
 ###############################################################################
-bc_mean_0.1 = resample(bc_mean, raster::rotate(edgar), method = "bilinear") 
+bc_mean_0.1 = resample(bc_mean, raster::rotate(co2_ch4_n2o_adjusted), method = "bilinear") 
 
 ##################################################################################################
 ### multiply BC by average global temperature potenital value 20-100 years (Bond et al (2013)) ###
@@ -187,11 +189,15 @@ bc_mean_0.1_adj = bc_mean_0.1*400
 ### combine MERRA-2 and EDGAR v5.0  ###
 #######################################
 bc_co2_ch4_n2o_adjusted = sum(raster::rotate(co2_ch4_n2o_adjusted), bc_mean_0.1_adj)
-bc_co2_ch4_n2o_adjusted = readAll(bc_co2_ch4_n2o_adjusted)
+ge = readAll(bc_co2_ch4_n2o_adjusted)
+save(ge, file = "/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
 
-plot(bc_co2_ch4_n2o_adjusted, col = matlab.like(100))
-plot(log10(bc_co2_ch4_n2o_adjusted), col = matlab.like(100))
-save(bc_co2_ch4_n2o_adjusted, file = "/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
+bc_co2_ch4_n2o_so2_adjusted = sum(raster::rotate(co2_ch4_n2o_so2_adjusted), bc_mean_0.1_adj)
+ge = readAll(bc_co2_ch4_n2o_so2_adjusted)
+save(ge, file = "/Users/ktanaka/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")
+
+plot(ge, col = matlab.like(100))
+plot(log10(ge), col = matlab.like(100))
 
 
 ### plot individual data ###

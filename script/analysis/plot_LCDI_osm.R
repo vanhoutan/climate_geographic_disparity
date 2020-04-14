@@ -39,16 +39,17 @@ bco2*1000
 ##################################################################################################
 ### Combined CO2+BC+CH$+N2O emission layer (1970-2018) adjusted by average GWP20-100 yrs value ###
 ##################################################################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #load combined emissions data
-load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #load combined emissions data
+load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O
+load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O+NO2
+load(paste0("/Users/", dir, "/clim_geo_disp/output/CO2_CH4_N2O_Combined_1970-2018.RData")) ##CO2+CH4+N2O
 
-bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
-bco2 = bc_co2_ch4_n2o_adjusted
+ge = resample(ge, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
+bco2 = ge
 bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
-xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')') #label A
-xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')') #label B
+# xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')') #label A
+# xlab = bquote('Emissions  (kg ' *m^-2~y^-1*')') #label B
 xlab = bquote('Net emissions (kg ' *m^-2~y^-1*')') #label B
-xlab = bquote('Net emissions per capita(kg ' *m^-2~y^-1*')') #label B
+# xlab = bquote('Net emissions per capita(kg ' *m^-2~y^-1*')') #label B
 
 rm(bc_co2_adjusted, bc_co2_ch4_n2o_adjusted, bc_co2_unadjusted)
 
@@ -177,6 +178,8 @@ label = unique(label)
 
 # input x y plot
 png("~/Desktop/LCDI_Scatter.png", height = 8, width = 10, units = "in", res = 300)
+# pdf("~/Desktop/LCDI_Scatter.pdf", height = 8, width = 10)
+
 xy_plot <-
   ggplot(raw_ratio %>% 
              sample_frac(1)) +
@@ -201,7 +204,8 @@ dev.off()
 # spatial plot
 world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
 
-png("~/Desktop/LCDI_Maps.png", height = 7, width = 14, units = "in", res = 300)
+# png("~/Desktop/LCDI_Maps.png", height = 7, width = 14, units = "in", res = 300)
+pdf("~/Desktop/LCDI_Maps.pdf", height = 7, width = 14)
 map_plot <-
   ggplot(raw_ratio) +
   geom_raster(aes(x = x, y = y, fill = disparity), show.legend = T) +
