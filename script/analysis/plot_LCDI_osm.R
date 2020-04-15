@@ -202,7 +202,9 @@ xy_plot <-
     theme(legend.position = c("right")) + 
   geom_text(data = label, aes(label = label),
             x = Inf, y = Inf, hjust = 1.1, vjust = 1.3, color = "black", size = 5)
+
 print(xy_plot)
+
 dev.off()
   
 # spatial plot
@@ -210,6 +212,7 @@ world <- ne_countries(scale = "small", returnclass = "sf") #worldwide country po
 
 # png("~/Desktop/LCDI_Maps.png", height = 7, width = 14, units = "in", res = 300)
 pdf("~/Desktop/LCDI_Maps.pdf", height = 7, width = 14)
+
 map_plot <-
   ggplot(raw_ratio) +
   geom_raster(aes(x = x, y = y, fill = disparity), show.legend = T) +
@@ -223,7 +226,9 @@ map_plot <-
   scale_y_continuous(expand = c(-0.005, 0), "") +
   theme_pubr(I(20)) +
   theme(legend.position = "right")
+
 print(map_plot)
+
 dev.off()
 
 png("~/Desktop/CMIP5_Anomalies.png", height = 7, width = 14, units = "in", res = 300)
