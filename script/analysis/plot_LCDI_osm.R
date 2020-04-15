@@ -159,10 +159,12 @@ lcdi = function(clim_anom, rcp, variable){
   return(raw_ratio)
 }
 
-a = lcdi("ensemble_1", "RCP4.5", "anomaly")
-b = lcdi("ensemble_2", "RCP4.5", "anomaly")
-c = lcdi("ensemble_1", "RCP8.5", "anomaly")
-d = lcdi("ensemble_2", "RCP8.5", "anomaly")
+variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
+
+a = lcdi("ensemble_1", "RCP4.5", variable)
+b = lcdi("ensemble_2", "RCP4.5", variable)
+c = lcdi("ensemble_1", "RCP8.5", variable)
+d = lcdi("ensemble_2", "RCP8.5", variable)
 
 raw_ratio = rbind(a, b, c, d)
 
@@ -182,11 +184,13 @@ png("~/Desktop/LCDI_Scatter.png", height = 8, width = 10, units = "in", res = 30
 
 xy_plot <-
   ggplot(raw_ratio %>% 
-             sample_frac(1)) +
+           # subset(period == c("2006-2055", "2050-2099")) %>% 
+           # subset(rcp == "RCP8.5") %>% 
+             sample_frac(0.1)) +
   geom_point(aes(x = BCE, y = anomaly, color = disparity), size = 4, alpha = 0.5, shape = 20, show.legend = T) +
   geom_abline(
     mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
-  facet_grid(period ~ rcp, scales = "free") + 
+  facet_grid(period ~ rcp) +
   scale_color_gradientn(
     colours = c("cyan", "black", "red"),
     values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
