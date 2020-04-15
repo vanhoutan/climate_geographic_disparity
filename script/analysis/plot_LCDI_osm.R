@@ -182,6 +182,27 @@ label = unique(label)
 png("~/Desktop/LCDI_Scatter.png", height = 8, width = 10, units = "in", res = 300)
 # pdf("~/Desktop/LCDI_Scatter.pdf", height = 8, width = 10)
 
+raw_ratio %>% 
+  sample_frac(0.01) %>% 
+  group_by(rcp, period) %>% 
+  do(gg = {
+    ggplot(., aes(x = BCE, y = anomaly, color = disparity)) + 
+      geom_point() + 
+      # geom_abline(intercept = min(anomaly, na.rm = T), slope = mean(slope)) +
+      scale_color_gradientn(
+        colours = c("cyan", "black", "red"),
+        values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
+        # limits = disparity_limits,
+        name = "LCDI") + 
+      facet_grid(period ~ rcp) + 
+      guides(fill = guide_colourbar(title.position = "right")) +
+      theme(legend.position = "right")
+    }) %>% 
+  .$gg %>% 
+  arrangeGrob(grobs = ., nrow = 4) %>%
+  grid.arrange()
+
+
 xy_plot <-
   ggplot(raw_ratio %>% 
            # subset(period == c("2006-2055", "2050-2099")) %>% 
@@ -228,7 +249,6 @@ map_plot <-
   theme(legend.position = "right")
 
 print(map_plot)
-
 dev.off()
 
 png("~/Desktop/CMIP5_Anomalies.png", height = 7, width = 14, units = "in", res = 300)
