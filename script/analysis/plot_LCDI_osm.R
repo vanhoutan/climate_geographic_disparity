@@ -20,6 +20,7 @@ library(ggpubr)
 library(sp)
 library(colortools)
 library(cowplot)
+library(gridExtra)
 
 ##################################################
 ### Combined BC-CO2 emission layer (2000-2017) ###
@@ -159,7 +160,7 @@ lcdi = function(clim_anom, rcp, variable){
   return(raw_ratio)
 }
 
-variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
+variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
 
 a = lcdi("ensemble_1", "RCP4.5", variable)
 b = lcdi("ensemble_2", "RCP4.5", variable)
@@ -182,39 +183,41 @@ label = unique(label)
 png("~/Desktop/LCDI_Scatter.png", height = 8, width = 10, units = "in", res = 300)
 # pdf("~/Desktop/LCDI_Scatter.pdf", height = 8, width = 10)
 
-raw_ratio %>% 
-  sample_frac(0.01) %>% 
-  group_by(rcp, period) %>% 
-  do(gg = {
-    ggplot(., aes(x = BCE, y = anomaly, color = disparity)) + 
-      geom_point() + 
-      # geom_abline(intercept = min(anomaly, na.rm = T), slope = mean(slope)) +
-      scale_color_gradientn(
-        colours = c("cyan", "black", "red"),
-        values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
-        # limits = disparity_limits,
-        name = "LCDI") + 
-      facet_grid(period ~ rcp) + 
-      guides(fill = guide_colourbar(title.position = "right")) +
-      theme(legend.position = "right")
-    }) %>% 
-  .$gg %>% 
-  arrangeGrob(grobs = ., nrow = 4) %>%
-  grid.arrange()
+# raw_ratio %>% 
+#   sample_frac(0.01) %>% 
+#   group_by(rcp, period) %>% 
+#   do(gg = {
+#     ggplot(., aes(x = BCE, y = anomaly, color = disparity)) + 
+#       geom_point() + 
+#       geom_abline(mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
+#       scale_color_gradientn(
+#         colours = c("cyan", "black", "red"),
+#         values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
+#         limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)) ,
+#         name = "LCDI") + 
+#       facet_grid(period ~ rcp) + 
+#       guides(fill = guide_colourbar(title.position = "right")) +
+#       theme(legend.position = "right")
+#   }) %>% 
+#   .$gg %>% 
+#   arrangeGrob(grobs = ., nrow = 2) %>%
+#   grid.arrange()
 
-
-xy_plot <-
-  ggplot(raw_ratio %>% 
-           # subset(period == c("2006-2055", "2050-2099")) %>% 
-           # subset(rcp == "RCP8.5") %>% 
-             sample_frac(0.1)) +
-  geom_point(aes(x = BCE, y = anomaly, color = disparity), size = 4, alpha = 0.5, shape = 20, show.legend = T) +
-  geom_abline(
-    mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
+xy_plot <- raw_ratio %>% 
+  subset(period == "2050-2099") %>%
+  subset(rcp == "RCP8.5") %>%
+  sample_frac(1) %>% 
+  ggplot() +
+  geom_point(aes(x = BCE, y = anomaly, color = disparity), 
+             # size = 6,
+             alpha = 0.6,
+             # shape = 21, 
+             show.legend = T) +
+  geom_abline(mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
   facet_grid(period ~ rcp) +
   scale_color_gradientn(
     colours = c("cyan", "black", "red"),
-    values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
+    values = scales::rescale(c(-0.5, -0.05, 0, 0.05, 0.5)),
     limits = disparity_limits,
     name = "LCDI") + 
   xlab(xlab) +
