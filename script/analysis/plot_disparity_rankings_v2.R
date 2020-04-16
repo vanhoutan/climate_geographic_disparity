@@ -12,9 +12,9 @@ rm(list = ls())
 
 pre_combine = function(rcp, period, variable){
   
-  rcp = c("RCP4.5", "RCP8.5")[2]
-  period = c("2006-2055", "2050-2099")[2]
-  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+  # rcp = c("RCP4.5", "RCP8.5")[2]
+  # period = c("2006-2055", "2050-2099")[2]
+  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
   scale = c("scaled", "unscaled")[2]
   
   load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, "_", variable, "_merra2_edgar_ghg.Rdata"))
@@ -351,17 +351,19 @@ pre_combine = function(rcp, period, variable){
   
 }
 
-rcp45_mid = pre_combine("RCP4.5", "2006-2055", "anomaly")
-rcp45_end = pre_combine("RCP4.5", "2050-2099", "anomaly")
-rcp85_mid = pre_combine("RCP8.5", "2006-2055", "anomaly")
-rcp85_end = pre_combine("RCP8.5", "2050-2099", "anomaly")
+variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+
+rcp45_mid = pre_combine("RCP4.5", "2006-2055", variable)
+rcp45_end = pre_combine("RCP4.5", "2050-2099", variable)
+rcp85_mid = pre_combine("RCP8.5", "2006-2055", variable)
+rcp85_end = pre_combine("RCP8.5", "2050-2099", variable)
 
 plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   
-  segment_size = 1
-  col_size = 4
-  font_size = 10
-  var = "q_10"
+  # segment_size = 1
+  # col_size = 4
+  # font_size = 10
+  # var = "q_10"
   
   df = rbind(rcp45_mid, rcp45_end, rcp85_mid, rcp85_end)
   df = subset(df, type != "Countries_without_EEZ")
@@ -525,14 +527,14 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     
     if (i %in% c(3,4)) {
       
-      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", data, "_", var, "_", category_list[i], ".pdf"), height = 8, width = 6)
+      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 8, width = 6)
       p = p + theme(legend.position = "right")
       print(p)
       dev.off()    
       
     } else {
       
-      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", data, "_", var, "_", category_list[i], ".pdf"), height = 4, width = 6)
+      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 4, width = 6)
       p = p + theme(legend.position = "right")
       print(p)
       dev.off()      
@@ -555,7 +557,7 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     
   }
   
-  pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", data, "_", var, ".pdf"), h = h, w = w)
+  pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, ".pdf"), h = h, w = w)
   
   # p = ggdraw() +
   #   draw_plot(plot_list[[3]], x = 0, y = 0, width = 0.3, height = 0.98) +
