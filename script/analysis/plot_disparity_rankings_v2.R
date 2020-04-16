@@ -589,11 +589,11 @@ plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
 plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   
   # segment_size = 1
-  # col_size = 2
+  # col_size = 3
   # n = 5
-  # font_size = 10
+  # font_size = 8
   # stat = "q_10"
-  # var = "Anthromes"
+  # var = "US_States"
   
   df = rbind(rcp45_mid, rcp45_end, rcp85_mid, rcp85_end)
   df = subset(df, type != "Countries_without_EEZ")
@@ -640,8 +640,11 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   df = rbind(df1, df2, df3, df4, df5)
   
   if (stat == "median") {
+    
     df$Disparity = df$median #rank by median
+    
   } else {
+    
     df$Disparity = df$q_10 #rank by 10th quantile
   }
   
@@ -664,7 +667,7 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   #   df = tbl_df(bind_rows(top, bottom))
   # 
   # }
-  if (var %in% c("Nation_states", "US_States")) {
+  if (var %in% c("Nation_states")) {
     
     df <- within(df, group <- as.integer(cut(Disparity*-1, quantile(Disparity*-1, probs=0:6/6), include.lowest = TRUE)))
 
@@ -749,7 +752,7 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   
   print(p)
   
-  pdf(paste0("/Users/ktanaka/Desktop/Rank_", var, data, ".pdf"), height = h, width = w)
+  pdf(paste0("/Users/ktanaka/Desktop/Rank_", var, ".pdf"), height = h, width = w)
   print(p)
   dev.off()
   
@@ -762,8 +765,7 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
 
 plot_ranking(var = "Ecoregions",        h = 5, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
 plot_ranking(var = "Political_regions", h = 4, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
-plot_ranking(var = "Nation_states",     h = 5, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
 plot_ranking(var = "Nation_states",     h = 12, w = 10, col_size = 3, segment_size = 1, font_size = 10, n = 5, stat = "q_10")
-plot_ranking(var = "US_states",         h = 8, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
+plot_ranking(var = "US_States",         h = 7, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
 plot_ranking(var = "Anthromes",         h = 4, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
  
