@@ -609,6 +609,3 @@ scenario("ensemble_1", "RCP4.5", "ensemble stdanom")
 scenario("ensemble_2", "RCP4.5", "ensemble stdanom")
 scenario("ensemble_1", "RCP8.5", "ensemble stdanom")
 scenario("ensemble_2", "RCP8.5", "ensemble stdanom")
-
-scenario("mpi_1", "RCP8.5")
-scenario("mpi_2", "RCP8.5")
