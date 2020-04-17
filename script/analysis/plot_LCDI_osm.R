@@ -157,10 +157,61 @@ lcdi = function(clim_anom, rcp, variable){
   raw_ratio$slope = slope
   raw_ratio$intercept = min(raw_ratio$anomaly, na.rm = T)
   
+  ### Set Universal Color Scale ###
+  disparity_limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)) 
+  disparity_limits
+  
+  if (clim_anom == "ensemble_1") label = paste0(rcp, " 2006-2055", "\n+/- Disparity Ratio = ", positive, "/", negative)
+  if (clim_anom == "ensemble_2") label = paste0(rcp, " 2050-2099", "\n+/- Disparity Ratio = ", positive, "/", negative)
+  
+  # if (clim_anom == "ensemble_1") label = paste0("+/- Disparity Ratio = ", positive, "/", negative)
+  # if (clim_anom == "ensemble_2") label = paste0("+/- Disparity Ratio = ", positive, "/", negative)
+  
+  # png(paste0("~/Desktop/LCDI_Scatter_", rcp, "_", clim_anom, "_", variable, ".png"), height = 5, width = 5, units = "in", res = 100)
+  # 
+  # xy_plot <-
+  #   ggplot(raw_ratio %>% 
+  #            sample_frac(1)) +
+  #   geom_point(aes(x = BCE, y = anomaly, color = disparity),
+  #              size = 4, 
+  #              alpha = 0.5, 
+  #              shape = 20,
+  #              show.legend = T) +
+  #   geom_abline(
+  #     intercept = min(raw_ratio$anomaly, na.rm = T),
+  #     color = "black",
+  #     slope = slope) +
+  #   scale_color_gradientn(
+  #     colours = c("cyan", "black", "red"),
+  #     values = scales::rescale(c(-0.5, -0.05, 0, 0.05, 0.5)),
+  #     limits = disparity_limits,
+  #     name = "LCDI") + 
+  #   # scale_x_continuous(expand = c(0,0), limits = c(0, 4.92)) +
+  #   # scale_x_continuous(expand = c(0,0), limits = c(0, 5000)) +
+  #   # scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
+  #   xlab(xlab) +
+  #   ylab(expression(paste('Surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
+  #   # coord_fixed(ratio = 1/slope) +
+  #   theme_pubr() +
+  #   theme(legend.position = c(0.1, 0.85), 
+  #         text = element_text(size = 15)) + 
+  #   annotate("text",
+  #            x = Inf,
+  #            y = Inf,
+  #            hjust = 1,
+  #            vjust = 1,
+  #            color = "black",
+  #            size = 5,
+  #            label = label)
+  # 
+  # print(xy_plot)
+  # 
+  # dev.off()
+  
   return(raw_ratio)
 }
 
-variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
 
 a = lcdi("ensemble_1", "RCP4.5", variable)
 b = lcdi("ensemble_2", "RCP4.5", variable)
@@ -183,30 +234,31 @@ label = unique(label)
 png("~/Desktop/LCDI_Scatter.png", height = 8, width = 10, units = "in", res = 300)
 # pdf("~/Desktop/LCDI_Scatter.pdf", height = 8, width = 10)
 
-# raw_ratio %>% 
-#   sample_frac(0.01) %>% 
-#   group_by(rcp, period) %>% 
+# raw_ratio %>%
+#   sample_frac(0.01) %>%
+#   group_by(rcp, period) %>%
 #   do(gg = {
-#     ggplot(., aes(x = BCE, y = anomaly, color = disparity)) + 
-#       geom_point() + 
-#       geom_abline(mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
+#     ggplot(., aes(x = BCE, y = anomaly, color = disparity)) +
+#       geom_point() +
+#       # geom_abline(mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) +
 #       scale_color_gradientn(
 #         colours = c("cyan", "black", "red"),
 #         values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
-#         limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)) ,
-#         name = "LCDI") + 
-#       facet_grid(period ~ rcp) + 
+#         # limits = c(-max(abs(raw_ratio$disparity), na.rm = T), max(abs(raw_ratio$disparity), na.rm = T)) ,
+#         name = "LCDI") +
+#       facet_grid(period ~ rcp) +
 #       guides(fill = guide_colourbar(title.position = "right")) +
 #       theme(legend.position = "right")
-#   }) %>% 
-#   .$gg %>% 
+#   }) %>%
+#   .$gg %>%
 #   arrangeGrob(grobs = ., nrow = 2) %>%
 #   grid.arrange()
 
-xy_plot <- raw_ratio %>% 
-  subset(period == "2050-2099") %>%
-  subset(rcp == "RCP8.5") %>%
-  sample_frac(1) %>% 
+xy_plot <- 
+  raw_ratio %>% 
+  # subset(period == "2050-2099") %>%
+  # subset(rcp == "RCP8.5") %>%
+  # sample_frac(0.1) %>%
   ggplot() +
   geom_point(aes(x = BCE, y = anomaly, color = disparity), 
              # size = 6,
@@ -214,10 +266,11 @@ xy_plot <- raw_ratio %>%
              # shape = 21, 
              show.legend = T) +
   geom_abline(mapping = aes(intercept = intercept, slope = slope), color = "black", data = slope) + 
-  facet_grid(period ~ rcp) +
+  facet_grid(period ~ rcp, scale = "free") +
   scale_color_gradientn(
     colours = c("cyan", "black", "red"),
-    values = scales::rescale(c(-0.5, -0.05, 0, 0.05, 0.5)),
+    # values = scales::rescale(c(-0.5, -0.05, -0.03, -0.01, 0, 0.01, 0.03, 0.05, 0.5)),
+    values = scales::rescale(c(-0.5, -0.15, 0, 0.15, 0.5)),
     limits = disparity_limits,
     name = "LCDI") + 
   xlab(xlab) +
@@ -252,6 +305,7 @@ map_plot <-
   theme(legend.position = "right")
 
 print(map_plot)
+
 dev.off()
 
 png("~/Desktop/CMIP5_Anomalies.png", height = 7, width = 14, units = "in", res = 300)

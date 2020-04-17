@@ -83,9 +83,9 @@ rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 
 scenario = function(clim_anom, rcp, variable){
   
-  # clim_anom = c("ensemble_1", "ensemble_2")[2]
-  # rcp = c("RCP4.5", "RCP8.5")[1]
-  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+  clim_anom = c("ensemble_1", "ensemble_2")[2]
+  rcp = c("RCP4.5", "RCP8.5")[1]
+  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
 
   setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
   
@@ -156,6 +156,43 @@ scenario = function(clim_anom, rcp, variable){
   disparity_limits
   
   # input x y plot
+  xy_plot <-
+    ggplot(raw_ratio %>% 
+             sample_frac(1)) +
+    geom_point(aes(x = BCE, y = anomaly, color = disparity),
+               # size = 4, 
+               alpha = 0.5, 
+               # shape = 20,
+               show.legend = T) +
+    geom_abline(
+      intercept = min(raw_ratio$anomaly, na.rm = T),
+      # intercept = 0,
+      color = "black",
+      slope = slope) +
+    scale_color_gradientn(
+      colours = c("cyan", "black", "red"),
+      # colours = c("black", "cyan", "red"), 
+      values = scales::rescale(c(-0.5, -0.2, 0, 0.2, 0.5)),
+      limits = disparity_limits,
+      name = "LCDI") + 
+    scale_x_continuous(expand = c(0,0), limits = c(0, max(raw_ratio$BCE))) +
+    # scale_x_continuous(expand = c(0,0), limits = c(0, 5000)) +
+    # scale_y_continuous(expand = c(0,0), limits = c(0, 10.5)) +
+    xlab(xlab) +
+    ylab(expression(paste('Surface Temperature Anomaly (',~degree,'C)', sep = ''))) + 
+    # coord_fixed(ratio = 1/slope) +
+    theme_pubr() +
+    theme(legend.position = c(0.1, 0.85), 
+          text = element_text(size = 15)) + 
+    annotate("text",
+             x = Inf,
+             y = Inf,
+             hjust = 1,
+             vjust = 1,
+             color = "black",
+             size = 5,
+             label = label)
+  
   xy_plot_main_text <-
     ggplot(raw_ratio %>% 
              sample_frac(0.6)) +
