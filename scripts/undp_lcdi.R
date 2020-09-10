@@ -36,18 +36,18 @@ dev.off()
 
 
 # undp = NULL
-# 
+#
 # for (i in 1990:2018) {
-#   
+#
 #   # i = 1990
 #   y = i-1988
-#   
+#
 #   df = mpi[,c(1,y)]
-#   
+#
 #   colnames(df) = c("Country", "MPI")
-#   
+#
 #   df$Year = i
-#   
+#
 #   undp = rbind(undp, df)
-#   
+#
 # }
