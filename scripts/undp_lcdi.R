@@ -14,6 +14,32 @@ mpi$mpi_mean = rowMeans(mpi[,c(2:30)])
 mpi = mpi[,c(1, 31)]
 
 mpi$Country = gsub("United States", "USA", mpi$Country, fixed = T)
+mpi$Country = gsub("Bahamas", "The Bahamas", mpi$Country, fixed = T)
+mpi$Country = gsub("Bolivia (Plurinational State of)", "Bolivia", mpi$Country, fixed = T)
+mpi$Country = gsub("Brunei Darussalam", "Brunei", mpi$Country, fixed = T)
+mpi$Country = gsub("Congo (Democratic Republic of the)", "DR Congo", mpi$Country, fixed = T)
+mpi$Country = gsub("C√¥te d'Ivoire", "Cote d'Ivoire", mpi$Country, fixed = T)
+mpi$Country = gsub("Czechia", "Czech Republic", mpi$Country, fixed = T)
+mpi$Country = gsub("Eswatini (Kingdom of)", "Eswatini", mpi$Country, fixed = T)
+mpi$Country = gsub("Gambia", "The Gambia", mpi$Country, fixed = T)
+mpi$Country = gsub("Hong Kong, China (SAR)", "Hong Kong", mpi$Country, fixed = T)
+mpi$Country = gsub("Iran (Islamic Republic of)", "Iran", mpi$Country, fixed = T)
+mpi$Country = gsub("Korea (Republic of)", "South Korea", mpi$Country, fixed = T)
+mpi$Country = gsub("Lao People's Democratic Republic", "Laos", mpi$Country, fixed = T)
+mpi$Country = gsub("North Macedonia", "Macedonia", mpi$Country, fixed = T)
+mpi$Country = gsub("Micronesia (Federated States of)", "Micronesia", mpi$Country, fixed = T)
+mpi$Country = gsub("Micronesia", "Moldova", mpi$Country, fixed = T)
+mpi$Country = gsub("Russian Federation", "The", mpi$Country, fixed = T)
+mpi$Country = gsub("Syrian Arab Republic", "Syria", mpi$Country, fixed = T)
+mpi$Country = gsub("Tanzania (United Republic of)", "Tanzania", mpi$Country, fixed = T)
+mpi$Country = gsub("Venezuela (Bolivarian Republic of)", "Venezuela", mpi$Country, fixed = T)
+
+kyle_fix = read_csv("~/clim_geo_disp/data/MPI_LCDI_KV_10Sep.csv")
+kyle_fix = kyle_fix$COUNTRY
+mpi = mpi %>% subset(Country %in% kyle_fix)
+
+# kyle_fix = data_frame(Country = kyle_fix$UNDP_Nations, kyle_fix = 1)
+# View(merge(mpi, kyle_fix, all = T))
 
 disp = merge(un, mpi)
 

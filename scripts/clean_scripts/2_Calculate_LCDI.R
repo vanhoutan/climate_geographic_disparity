@@ -26,7 +26,7 @@ library(ggdark)
 ###########################################################
 load("~/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
 anomaly = stack("~/clim_geo_disp/data/CMIP5 ENSMN RCP8.5 anomaly (2050-2099)-(1956-2005).nc", varname = "anomaly") # CMIP5 data that has 1*1 resolution
-bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, raster::rotate(anomaly), method = "bilinear") # interpolate the emission layer on 1*1 resolution
+bc_co2_ch4_n2o_adjusted = resample(ge, raster::rotate(anomaly), method = "bilinear") # interpolate the emission layer on 1*1 resolution
 bco2 = bc_co2_ch4_n2o_adjusted
 bco2 = bco2 * 31556952 # 31556952 Seconds equals 1 Gregorian Year
 xlab = bquote('Emissions  ('*CO[2]* '+BC+' *CH[4]* '+' *N[2]* 'O: kg ' *m^-2~y^-1*')') #label A
@@ -93,7 +93,7 @@ rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 ### calculate LCDI for every climate change scenario  ### 
 ### RCP = 4.5 & 8.5                                   ###
 ### 2005-2055 (ensemble_1)                            ###
-### 2050-2000 (ensemnle_2)                            ###
+### 2050-2099 (ensemnle_2)                            ###
 #########################################################
 
 scenario = function(clim_anom, rcp){
@@ -279,7 +279,7 @@ scenario = function(clim_anom, rcp){
                                  barwidth = 10, barheight = 1.5)) 
   
   ### save figures ###
-  setwd("/Desktop")
+  setwd("~/Desktop")
   
   pdf("Figure_2a_blank.pdf", height = 5, width = 5)
   print(xy_plot_main_blank)
@@ -340,7 +340,7 @@ scenario = function(clim_anom, rcp){
     theme(legend.position = "bottom", legend.justification = c(1,0))+
     ggtitle(title)
   
-  pdf(paste0("/Desktop/Ratio_", title,".pdf"), height = 6, width = 9)
+  pdf(paste0("~/Desktop/Ratio_", title,".pdf"), height = 6, width = 9)
   print(map_ratio)
   dev.off()
   
@@ -518,7 +518,7 @@ scenario = function(clim_anom, rcp){
   
   # Olson, D. M., Dinerstein, E., Wikramanayake, E. D., Burgess, N. D., Powell, G. V. N., Underwood, E. C., D'Amico, J. A., Itoua, I., Strand, H. E., Morrison, J. C., Loucks, C. J., Allnutt, T. F., Ricketts, T. H., Kura, Y., Lamoreux, J. F., Wettengel, W. W., Hedao, P., Kassem, K. R. 2001. Terrestrial ecoregions of the world: a new map of life on Earth. Bioscience 51(11):933-938.
   
-  shape <- readOGR(dsn = "/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos") 
+  shape <- readOGR(dsn = "~/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos") 
   
   # shape <- ms_simplify(shape, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape <- shape %>% st_as_sf()  
@@ -557,14 +557,14 @@ scenario = function(clim_anom, rcp){
   
   # Spalding, M.D., Fox, H.E., Allen, G.R., Davidson, N., Ferdaña, Z.A., Finlayson, M.A.X., Halpern, B.S., Jorge, M.A., Lombana, A.L., Lourie, S.A. and Martin, K.D., 2007. Marine ecoregions of the world: a bioregionalization of coastal and shelf areas. BioScience, 57(7), pp.573-583.
   
-  shape_MEOW <- readOGR(dsn = "/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
+  shape_MEOW <- readOGR(dsn = "~/clim_geo_disp/data/MEOW_2", layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
   
   # shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape_MEOW <- shape_MEOW %>% st_as_sf()  
   
   # clip out marine realms overlapping on land
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
-  load("/clim_geo_disp/data/land_ocean_df.RData")
+  load("~/clim_geo_disp/data/land_ocean_df.RData")
   land <- land %>% st_set_precision(1000000) %>% lwgeom::st_make_valid()
   shape_MEOW <- st_difference(shape_MEOW, st_union(land))
   
@@ -580,7 +580,7 @@ scenario = function(clim_anom, rcp){
   # Flanders Marine Institute (2018). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 10. Available online at http://www.marineregions.org/. https://doi.org/10.14284/312
   
   # EEZ land_union shapefile
-  eez_land <- readOGR(dsn = "/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410")  
+  eez_land <- readOGR(dsn = "~/clim_geo_disp/data/EEZ_land_union", layer = "EEZ_land_v2_201410")  
   # eez_land <- ms_simplify(eez_land, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   
   eez_land <- eez_land %>% st_as_sf()  
@@ -611,7 +611,7 @@ scenario = function(clim_anom, rcp){
   
   # ocean <- ne_download(type = "ocean", category = 'physical', returnclass = "sf") 
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
-  load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
+  load("~/clim_geo_disp/data/land_ocean_df.RData")
   
   # find intersections with calculated LCDI
   land_intersection <- st_intersection(disparity,land)
@@ -631,7 +631,7 @@ scenario = function(clim_anom, rcp){
   
   rm(ocean, land, land_intersection,ocean_intersection)
   
-  setwd("/Desktop/")
+  setwd("~/Desktop/")
   
   save(intersection_biome, intersection_realm, intersection_world, intersection_land_eez, intersection_states, earth, 
        file = paste0("intersection_result_", clim_anom, "_", rcp, ".RData"))
