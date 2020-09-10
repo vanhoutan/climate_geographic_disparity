@@ -12,8 +12,9 @@ data = c("_merra2_edgar_ghg", "_merra2_edgar_co2", "_merra2_odiac")[1]
 rcp = c("RCP4.5", "RCP8.5")[2]
 period = c("2006-2055", "2050-2099")[2]
 scale = c("scaled", "unscaled")[2]
+variable = c("anomaly", "historical stdanom")[1]
 
-load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, data, ".Rdata"))
+load(paste0("~/clim_geo_disp/output/intersection_result_", period, "_", rcp, "_", variable, data, ".Rdata"))
 
 df = subset(intersection_world, geounit %in% c("China", "Greenland", "India"))
 

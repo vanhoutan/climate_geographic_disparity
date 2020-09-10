@@ -1,4 +1,4 @@
-lcdi <- read_csv("LCDI_RCP8.5_2050-2099.csv")
+lcdi <- read_csv("~/clim_geo_disp/data/LCDI_RCP8.5_2050-2099.csv")
 
 bins <- 100
 cols <- c("cyan", "black", "red")
