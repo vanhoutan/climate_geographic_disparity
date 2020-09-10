@@ -18,8 +18,8 @@ library(maps)
 ### kg m-2 s-1                                                                          ###
 ###########################################################################################
 
-BC <- list.files('/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$') # list all netcdf files in the folder
-BC <- paste0("/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs/", BC) # add parent directories
+BC <- list.files('/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs', pattern = '\\.nc4$') # list all netcdf files in the folder
+BC <- paste0("/Users/ktanaka/Desktop/climate/KV_climate/climate_impacts_2019/data/causes/GHGs/", BC) # add parent directories
 ghg <- c("OCEMAN","BCEMAN","SO2EMAN","SO4EMAN")[2] #BCEMAN = Black Carbon Anthropogenic Emissions
 
 bc = raster::stack()
@@ -50,8 +50,8 @@ bc_mean = mean(bc)
 ################
 ### CO2 excl ###
 ################
-var <- list.files('/Desktop/edgar/v50_CO2_excl_short-cycle_org/v50_CO2_excl_short-cycle_org_C_TOTALS_nc/', pattern = '\\.nc$')
-var <- paste0("/Desktop/edgar/v50_CO2_excl_short-cycle_org/v50_CO2_excl_short-cycle_org_C_TOTALS_nc/", var) 
+var <- list.files('/Users/ktanaka/Desktop/edgar/v50_CO2_excl_short-cycle_org/v50_CO2_excl_short-cycle_org_C_TOTALS_nc/', pattern = '\\.nc$')
+var <- paste0("/Users/ktanaka/Desktop/edgar/v50_CO2_excl_short-cycle_org/v50_CO2_excl_short-cycle_org_C_TOTALS_nc/", var) 
 
 emissions <- "emi_co2"
 
@@ -72,8 +72,8 @@ co2_excl_mean = mean(ghg)
 ###############
 ### CO2 org ###
 ###############
-var <- list.files('/Desktop/edgar/v50_CO2_org_short-cycle_C/v50_CO2_org_short-cycle_C_TOTALS_nc/', pattern = '\\.nc$')
-var <- paste0("/Desktop/edgar/v50_CO2_org_short-cycle_C/v50_CO2_org_short-cycle_C_TOTALS_nc/", var)
+var <- list.files('/Users/ktanaka/Desktop/edgar/v50_CO2_org_short-cycle_C/v50_CO2_org_short-cycle_C_TOTALS_nc/', pattern = '\\.nc$')
+var <- paste0("/Users/ktanaka/Desktop/edgar/v50_CO2_org_short-cycle_C/v50_CO2_org_short-cycle_C_TOTALS_nc/", var)
 
 emissions <- "emi_co2"
 
@@ -95,8 +95,8 @@ co2_org_mean = mean(ghg)
 ###########
 ### CH4 ###
 ###########
-var <- list.files('/Desktop/edgar/v50_CH4_1970_2015/v50_CH4_TOTALS_nc', pattern = '\\.nc$') 
-var <- paste0("/Desktop/edgar/v50_CH4_1970_2015/v50_CH4_TOTALS_nc/", var) 
+var <- list.files('/Users/ktanaka/Desktop/edgar/v50_CH4_1970_2015/v50_CH4_TOTALS_nc', pattern = '\\.nc$') 
+var <- paste0("/Users/ktanaka/Desktop/edgar/v50_CH4_1970_2015/v50_CH4_TOTALS_nc/", var) 
 
 emissions <- "emi_ch4"
 
@@ -117,8 +117,8 @@ ch4_mean = mean(ghg)
 ###########
 ### N2O ###
 ###########
-var <- list.files('/Desktop/edgar/v50_N2O/v50_N2O_TOTALS_nc/', pattern = '\\.nc$')
-var <- paste0("/Desktop/edgar/v50_N2O/v50_N2O_TOTALS_nc/", var)
+var <- list.files('/Users/ktanaka/Desktop/edgar/v50_N2O/v50_N2O_TOTALS_nc/', pattern = '\\.nc$')
+var <- paste0("/Users/ktanaka/Desktop/edgar/v50_N2O/v50_N2O_TOTALS_nc/", var)
 
 emissions <- "emi_n2o"
 
