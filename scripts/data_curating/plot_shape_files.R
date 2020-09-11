@@ -1,3 +1,8 @@
+library(sf)
+library(tidyverse)
+library(ggpubr)
+library(rnaturalearth)
+
 rm(list = ls())
 
 # shape <- readOGR(dsn = "/Users/ktanaka/clim_geo_disp/data/TEOW", layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
@@ -73,6 +78,22 @@ shape %>% ggplot() +
   # dark_theme_classic() + 
   guides(fill = guide_legend(nrow = 5), "") + 
   theme(legend.position = "bottom")
+dev.off()
+
+shape <- ne_countries(scale = "small", returnclass = "sf") #worldwide country polygon
+shape <- shape[55] %>% st_as_sf()  
+shape <- shape %>% filter(!continent %in% c("Seven seas (open ocean)",""))
+shape <- shape %>% filter(!continent %in% c("Antarctica",""))
+
+
+pdf("~/Desktop/unit-continents.pdf", width = 10, height = 8)
+shape %>% ggplot() + 
+  geom_sf(aes(group = continent, fill = continent), color = "NA", show.legend = T) + 
+  # scale_fill_viridis_d("") + 
+  theme_void() +
+  # dark_theme_classic() + 
+  guides(fill = guide_legend(nrow = 1), "") + 
+  theme(legend.position = "none")
 dev.off()
 
 
