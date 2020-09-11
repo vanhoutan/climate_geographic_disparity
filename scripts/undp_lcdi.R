@@ -9,8 +9,11 @@ rm(list = ls())
 ### import LCDI results ###
 ###########################
 load("~/clim_geo_disp/data/Disparity_Countries_with_EEZ.RData") #LCDIs for 192 UN members with EEZ
+
+lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4]
+
 lcdi = df3 %>% 
-  subset(outcome == "RCP8.5 2050-2099  ") %>% #select LCDI scenario
+  subset(outcome %in% lcdi_scenario) %>% #select LCDI scenario
   group_by(unit) %>% 
   summarise(lcdi = mean(mean))
 rm(df3)
@@ -80,7 +83,7 @@ region$Region = gsub("Seven seas (open ocean)", "Africa", region$Region, fixed =
 ############################
 undp_lcdi_region = merge(undp_lcdi, region)
 
-pdf("~/Desktop/UNDP_LCDI.pdf", height = 10, width = 10)
+pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
 
 undp_lcdi_region %>% 
   ggplot(aes(lcdi, undp_mean, label = Country)) + 
@@ -91,7 +94,7 @@ undp_lcdi_region %>%
   # xlim(-max(undp_lcdi_region$lcdi), max(undp_lcdi_region$lcdi)) +
   # ylim(0,1) +
   scale_color_discrete("") +
-  xlab("LCDI") + ylab("UNDP_MPI_1990-2018") +
+  xlab(paste0("LCDI ", lcdi_scenario)) + ylab("UNDP_MPI_1990-2018") +
   ggthemes::theme_few() +
   theme(legend.position = "right") + 
   guides(color = guide_legend(ncol = 1))
