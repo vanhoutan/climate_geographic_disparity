@@ -45,18 +45,28 @@ disp = merge(un, mpi)
 
 class(disp$mpi_mean)
 
+region = read_csv("~/clim_geo_disp/data/country_region.csv")
+region = data.frame(Country = region$name,
+                    # Region = region$subregion
+                    Region = region$continent
+)
+
+disp = merge(disp, region)
+
 pdf("~/Desktop/UNDP_CLIM_DISP.pdf", height = 10, width = 10)
 
 disp %>% 
   ggplot(aes(lcdi, mpi_mean, label = Country)) + 
-  ggrepel::geom_text_repel(aes(color = Country)) +
-  geom_point(aes(color = Country)) +
+  ggrepel::geom_text_repel(aes(color = Region), show.legend = F) +
+  geom_point(aes(color = Region)) +
   stat_smooth(method = "lm", se = F) + 
   # xlim(-max(disp$lcdi), max(disp$lcdi)) +
   # ylim(0,1) + 
+  # scale_color_viridis_d() + 
   xlab("LCDI") + ylab("UNDP_MPI_1990-2018") +
   ggthemes::theme_few() +
-  theme(legend.position = "none") 
+  theme(legend.position = "right") + 
+  guides(color = guide_legend(ncol = 1))
 
 dev.off()
 
