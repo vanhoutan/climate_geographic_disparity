@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggrepel)
 library(ggthemes)
 library(rgeos)
+library(sf)
 library(rnaturalearth)
 
 rm(list = ls())
