@@ -38,6 +38,7 @@ undp$Country = gsub("Bolivia (Plurinational State of)", "Bolivia", undp$Country,
 undp$Country = gsub("Brunei Darussalam", "Brunei", undp$Country, fixed = T)
 undp$Country = gsub("Congo (Democratic Republic of the)", "DR Congo", undp$Country, fixed = T)
 undp$Country = gsub("C√¥te d'Ivoire", "Cote d'Ivoire", undp$Country, fixed = T)
+undp$Country = gsub("Côte d'Ivoire", "Cote d'Ivoire", undp$Country, fixed = T)
 undp$Country = gsub("Czechia", "Czech Republic", undp$Country, fixed = T)
 undp$Country = gsub("Eswatini (Kingdom of)", "Eswatini", undp$Country, fixed = T)
 undp$Country = gsub("Gambia", "The Gambia", undp$Country, fixed = T)
