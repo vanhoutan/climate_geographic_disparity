@@ -1,6 +1,9 @@
 library(dplyr)
 library(readr)
 library(ggplot2)
+library(ggrepel)
+library(ggthemes)
+library(rgeos)
 library(rnaturalearth)
 
 rm(list = ls())
@@ -67,15 +70,12 @@ region = data.frame(Country = region$name,
 #reconcile country names
 region$Country = gsub("United States of America", "USA", region$Country, fixed = T)
 region$Country = gsub("United Kingdom", "UK", region$Country, fixed = T)
-
 region$Country = gsub("Bosnia and Herz.", "Bosnia and Herzegovina", region$Country, fixed = T)
-
 region$Country = gsub("Central African Rep.", "Central African Republic", region$Country, fixed = T)
 region$Country = gsub("Côte d'Ivoire", "Cote d'Ivoires", region$Country, fixed = T)
 region$Country = gsub("Dem. Rep. Congo", "DR Congo", region$Country, fixed = T)
 region$Country = gsub("Dominican Rep.", "Dominican Republic", region$Country, fixed = T)
 region$Country = gsub("Eq. Guinea", "Equatorial Guinea", region$Country, fixed = T)
-
 region$Region = gsub("Seven seas (open ocean)", "Africa", region$Region, fixed = T)
 
 ############################
