@@ -6,6 +6,7 @@ library(ggthemes)
 library(rgeos)
 library(sf)
 library(rnaturalearth)
+library(RColorBrewer)
 
 rm(list = ls())
 
@@ -96,8 +97,9 @@ undp_lcdi_region %>%
   coord_fixed(ratio = 10) + 
   # xlim(-max(undp_lcdi_region$lcdi), max(undp_lcdi_region$lcdi)) +
   # ylim(0,1) +
-  scale_color_discrete("") +
-  xlab(paste0("LCDI ", lcdi_scenario)) + ylab("UNDP_MPI_1990-2018") +
+  # scale_color_discrete("") +
+  scale_color_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + # NBC logo colors
+  xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP Multidimensional poverty index (1990-2018)") +
   ggthemes::theme_few() +
   theme(legend.position = "right") + 
   guides(color = guide_legend(ncol = 1))
@@ -129,7 +131,8 @@ pdf("~/Desktop/unit-continents.pdf", width = 10, height = 8)
 shape %>% ggplot() + 
   geom_sf(aes(group = continent, fill = continent), color = "NA", show.legend = T) + 
   theme_void() +
-  scale_fill_discrete("") + 
+#  scale_fill_discrete("") + 
+  scale_fill_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + 
   guides(fill = guide_legend(nrow = 1), "") + 
   theme(legend.position = "top")
 dev.off()
