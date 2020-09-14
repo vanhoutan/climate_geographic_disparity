@@ -91,13 +91,17 @@ pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
 
 undp_lcdi_region %>% 
   ggplot(aes(lcdi, undp_mean, label = Country)) + 
-  ggrepel::geom_text_repel(aes(color = Region), show.legend = F) +
   geom_point(aes(color = Region)) +
+  
+  # label every country
+  # ggrepel::geom_text_repel(aes(color = Region), show.legend = F) +
+  
+  # label outlier countries + alpha
+  stat_dens2d_filter(geom = "text_repel", aes(color = Region), keep.fraction = 0.1) + 
+  ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China")), aes(color = Region), show.legend = F) +
+  
   stat_smooth(method = "lm", se = F) + 
   coord_fixed(ratio = 10) + 
-  # xlim(-max(undp_lcdi_region$lcdi), max(undp_lcdi_region$lcdi)) +
-  # ylim(0,1) +
-  # scale_color_discrete("") +
   scale_color_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + # NBC logo colors
   xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP multidimensional poverty index (1990-2018)") +
   ggthemes::theme_few() +
