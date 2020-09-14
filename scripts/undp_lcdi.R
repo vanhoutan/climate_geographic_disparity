@@ -75,7 +75,6 @@ region$Country = gsub("United States of America", "USA", region$Country, fixed =
 region$Country = gsub("United Kingdom", "UK", region$Country, fixed = T)
 region$Country = gsub("Bosnia and Herz.", "Bosnia and Herzegovina", region$Country, fixed = T)
 region$Country = gsub("Central African Rep.", "Central African Republic", region$Country, fixed = T)
-#region$Country = gsub("Côte d'Ivoire", "Cote d'Ivoires", region$Country, fixed = T)
 region$Country = gsub("Côte d'Ivoire", "Cote d'Ivoire", region$Country, fixed = T)
 region$Country = gsub("Dem. Rep. Congo", "DR Congo", region$Country, fixed = T)
 region$Country = gsub("Dominican Rep.", "Dominican Republic", region$Country, fixed = T)
