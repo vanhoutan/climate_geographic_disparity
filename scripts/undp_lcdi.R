@@ -90,8 +90,8 @@ undp_lcdi_region = merge(undp_lcdi, region)
 #########################################
 ### filter labels based on MPI values ###
 #########################################
-mpi_hi = undp_lcdi_region %>% top_n(5, undp_mean)
-mpi_lw = undp_lcdi_region %>% top_n(-5, undp_mean)
+mpi_hi = undp_lcdi_region %>% top_n(5, undp_mean) # top 5
+mpi_lw = undp_lcdi_region %>% top_n(-5, undp_mean) # bottom 5
 mpi = rbind(mpi_hi, mpi_lw); mpi
 
 pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
@@ -109,9 +109,9 @@ undp_lcdi_region %>%
   
   # label mpi outlier countries
   ggrepel::geom_text_repel(data = mpi, aes(color = Region), show.legend = F) +
-  ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China")), aes(color = Region), show.legend = F) +
+  ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China", "Belgium")), aes(color = Region), show.legend = F) +
   
-  stat_smooth(method = "lm", se = F) + 
+  stat_smooth(method = "lm", se = F, color = "gray") + 
   coord_fixed(ratio = 10) + 
   scale_color_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + # NBC logo colors
   xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP multidimensional poverty index (1990-2018)") +
