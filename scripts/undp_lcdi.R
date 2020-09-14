@@ -87,6 +87,13 @@ region$Region = gsub("Seven seas (open ocean)", "Africa", region$Region, fixed =
 ############################
 undp_lcdi_region = merge(undp_lcdi, region)
 
+#########################################
+### filter labels based on MPI values ###
+#########################################
+mpi_hi = undp_lcdi_region %>% top_n(5, undp_mean)
+mpi_lw = undp_lcdi_region %>% top_n(-5, undp_mean)
+mpi = rbind(mpi_hi, mpi_lw); mpi
+
 pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
 
 undp_lcdi_region %>% 
@@ -96,8 +103,12 @@ undp_lcdi_region %>%
   # label every country
   # ggrepel::geom_text_repel(aes(color = Region), show.legend = F) +
   
-  # label outlier countries + alpha
-  stat_dens2d_filter(geom = "text_repel", aes(color = Region), keep.fraction = 0.1) + 
+  # # label outlier countries + alpha
+  # stat_dens2d_filter(geom = "text_repel", aes(color = Region), keep.fraction = 0.1) + 
+  # ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China")), aes(color = Region), show.legend = F) +
+  
+  # label mpi outlier countries
+  ggrepel::geom_text_repel(data = mpi, aes(color = Region), show.legend = F) +
   ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China")), aes(color = Region), show.legend = F) +
   
   stat_smooth(method = "lm", se = F) + 
