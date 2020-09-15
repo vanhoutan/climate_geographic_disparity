@@ -15,7 +15,7 @@ rm(list = ls())
 ###########################
 load("~/clim_geo_disp/data/Disparity_Countries_with_EEZ.RData") #LCDIs for 192 UN members with EEZ
 
-lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4]
+lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4] ##change this number for different scenario
 
 lcdi = df3 %>% 
   subset(outcome %in% lcdi_scenario) %>% #select LCDI scenario
@@ -27,7 +27,10 @@ colnames(lcdi)[1] = "Country"
 #######################
 ### import UNDP-MPI ###
 #######################
+
+## If change the MPI source file for 2019 or 2020, then change this link
 undp <- read_csv("~/clim_geo_disp/data/UNDP_Indices/mpi.csv") #UNDP mpi 1990-2018
+## update the list length to 32 if bring in 2020 data, this is 1990-2018
 undp$undp_mean = rowMeans(undp[,c(2:30)])
 undp = undp[,c(1, 31)]
 
@@ -89,13 +92,13 @@ undp_lcdi_region = merge(undp_lcdi, region)
 #########################################
 ### filter labels based on MPI values ###
 #########################################
-mpi_hi = undp_lcdi_region %>% top_n(5, undp_mean) # top 5
-mpi_lw = undp_lcdi_region %>% top_n(-5, undp_mean) # bottom 5
+mpi_hi = undp_lcdi_region %>% top_n(8, undp_mean) # top number
+mpi_lw = undp_lcdi_region %>% top_n(-8, undp_mean) # bottom number
 mpi = rbind(mpi_hi, mpi_lw); mpi
 
-pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
+## pdf(paste0("~/Desktop/UNDP_LCDI_", Sys.Date(), ".pdf"), height = 10, width = 10)
 
-undp_lcdi_region %>% 
+undp_lcdi_region %>%
   ggplot(aes(lcdi, undp_mean, label = Country)) + 
   geom_point(aes(color = Region)) +
   
