@@ -119,7 +119,7 @@ undp_lcdi_region %>%
   stat_smooth(method = "lm", se = F, color = "gray") + 
   coord_fixed(ratio = 10) + 
   scale_color_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + # NBC logo colors
-  xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP multidimensional poverty index (1990-2018)") +
+  xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP Income 1990-2018 (average)") +
   ggthemes::theme_few() +
   theme(legend.position = "right") + 
   guides(color = guide_legend(ncol = 1))
