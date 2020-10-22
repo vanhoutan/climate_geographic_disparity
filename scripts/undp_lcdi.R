@@ -24,17 +24,21 @@ lcdi = df3 %>%
 rm(df3)
 colnames(lcdi)[1] = "Country"
 
-#######################
-### import UNDP-MPI ###
-#######################
+################################
+### import UNDP-Income Index ###
+################################
 
 ## MPI = multi-dimensional poverty index
-## If change the MPI source file for 2019 or 2020, then change this link
+## If change the UNDP source file for 2019 or 2020, then change this link
 ## this list is the INCOME INDEX only for each country 
 ## it is used in the MPI calculation, but it is only one factor of the MPI
-undp <- read_csv("~/clim_geo_disp/data/UNDP_Indices/mpi.csv") #UNDP mpi 1990-2018
+## Note that poverty indices are not produced for developed countries by UNDP
+## so to get UNDP economic insights, we used the Income Index  
+undp <- read_csv("~/clim_geo_disp/data/UNDP_Indices/mpi.csv") #UNDP Income Index 1990-2018
 ## update the list length to 32 if bring in 2020 data, this is 1990-2018
 undp$undp_mean = rowMeans(undp[,c(2:30)])
+## Take the mean Income Index value from 1990-2018 for each UN member state
+## Do this mean so Income Index reflects same time period of LCDI 
 undp = undp[,c(1, 31)]
 
 #reconcile country names
