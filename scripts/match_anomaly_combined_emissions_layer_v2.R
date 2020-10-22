@@ -24,13 +24,13 @@ library(cowplot)
 ##################################################
 ### Combined BC-CO2 emission layer (2000-2017) ###
 ##################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
+load(paste0("/Users/", dir, "/clim_geo_disp/outputs/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
 xlab = "BC + CO2 emission (g m-2)"
 
 ##################################################
 ### Combined BC-CO2 emission layer (1970-2018) ###
 ##################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
+load(paste0("/Users/", dir, "/clim_geo_disp/outputs/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
 xlab = "BC + CO2 emission (kg m-2)"
@@ -39,9 +39,9 @@ bco2*1000
 ##################################################################################################
 ### Combined CO2+BC+CH$+N2O emission layer (1970-2018) adjusted by average GWP20-100 yrs value ###
 ##################################################################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData"))     #BC+CO2+CH4+N2O
-load(paste0("/Users/", dir, "/clim_geo_disp/output/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O+NO2
-load(paste0("/Users/", dir, "/clim_geo_disp/output/CO2_CH4_N2O_Combined_1970-2018.RData"))        #CO2+CH4+N2O
+load(paste0("/Users/", dir, "/clim_geo_disp/outputs/BC_CO2_CH4_N2O_Combined_1970-2018.RData"))     #BC+CO2+CH4+N2O
+load(paste0("/Users/", dir, "/clim_geo_disp/outputs/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O+NO2
+load(paste0("/Users/", dir, "/clim_geo_disp/outputs/CO2_CH4_N2O_Combined_1970-2018.RData"))        #CO2+CH4+N2O
 
 ge = resample(ge, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = ge
