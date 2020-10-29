@@ -24,7 +24,7 @@ library(ggdark)
 ###########################################################
 ### Global Emission Layer (CO2+BC+CH$+N2O GTP adjusted) ###
 ###########################################################
-load("~/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
+load("~/clim_geo_disp/outputs/BC_CO2_CH4_N2O_Combined_1970-2018.RData")
 anomaly = stack("~/clim_geo_disp/data/CMIP5 ENSMN RCP8.5 anomaly (2050-2099)-(1956-2005).nc", varname = "anomaly") # CMIP5 data that has 1*1 resolution
 bc_co2_ch4_n2o_adjusted = resample(ge, raster::rotate(anomaly), method = "bilinear") # interpolate the emission layer on 1*1 resolution
 bco2 = bc_co2_ch4_n2o_adjusted
@@ -37,7 +37,7 @@ rm(bc_co2_ch4_n2o_adjusted)
 #####################################################################################################################
 ### Gridded Population of the World (GPWv4), use in case of per capita analysis. https://doi.org/10.7927/H49C6VHW ###
 #####################################################################################################################
-gpw_pop <- stack("~/Desktop/gpw/gpw_v4_population_density_rev11_1_deg.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 1 degree")
+gpw_pop <- stack("~/clim_geo_disp/data/gpw/gpw_v4_population_density_rev11_1_deg.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 1 degree")
 # gpw_pop <- stack("/Desktop/gpw/gpw_v4_population_density_rev11_30_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 30 arc-minutes")
 # gpw_pop <- stack("/Desktop/gpw/gpw_v4_population_density_rev11_15_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 15 arc-minutes")
 # gpw_pop <- stack("/Desktop/gpw/gpw_v4_population_density_rev11_2pt5_min.nc", varname = "Population Density, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes")
