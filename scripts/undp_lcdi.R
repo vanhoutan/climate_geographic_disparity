@@ -68,7 +68,7 @@ undp$Country = gsub("Tanzania (United Republic of)", "Tanzania", undp$Country, f
 undp$Country = gsub("Venezuela (Bolivarian Republic of)", "Venezuela", undp$Country, fixed = T)
 
 #import list of reconciled country names done by KVH
-kyle_fix = read_csv("~/clim_geo_disp/data/mpi_LCDI_KV_10Sep.csv")
+kyle_fix = read_csv(paste0("/Users/", dir, "/climate_geographic_disparity/data/mpi_LCDI_KV_10Sep.csv"))
 kyle_fix = kyle_fix$COUNTRY
 undp = undp %>% subset(Country %in% kyle_fix)
 undp_lcdi = merge(lcdi, undp); rm(lcdi, undp, kyle_fix)
