@@ -10,10 +10,12 @@ library(RColorBrewer)
 
 rm(list = ls())
 
+dir = Sys.info()[7]
+
 ###########################
 ### import LCDI results ###
 ###########################
-load("~/clim_geo_disp/data/Disparity_Countries_with_EEZ.RData") #LCDIs for 192 UN members with EEZ
+load(paste0("/Users/", dir, "/climate_geographic_disparity/data/Disparity_Countries_with_EEZ.RData")) #LCDIs for 192 UN members with EEZ
 
 lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4] ##change this number for different scenario
 
@@ -34,7 +36,7 @@ colnames(lcdi)[1] = "Country"
 ## it is used in the MPI calculation, but it is only one factor of the MPI
 ## Note that poverty indices are not produced for developed countries by UNDP
 ## so to get UNDP economic insights, we used the Income Index  
-undp <- read_csv("~/clim_geo_disp/data/UNDP_Indices/mpi.csv") #UNDP Income Index 1990-2018
+undp <- read_csv(paste0("/Users/", dir, "/climate_geographic_disparity/data/UNDP_Indices/mpi.csv")) #UNDP Income Index 1990-2018
 ## update the list length to 32 if bring in 2020 data, this is 1990-2018
 undp$undp_mean = rowMeans(undp[,c(2:30)])
 ## Take the mean Income Index value from 1990-2018 for each UN member state
@@ -74,7 +76,7 @@ undp_lcdi = merge(lcdi, undp); rm(lcdi, undp, kyle_fix)
 ###########################################
 ### import continent and subregion data ###
 ###########################################
-region = read_csv("~/clim_geo_disp/data/country_region.csv")
+region = read_csv(paste0("/Users/", dir, "/climate_geographic_disparity/data/country_region.csv"))
 region = data.frame(Country = region$name,
                     # Region = region$subregion
                     Region = region$continent

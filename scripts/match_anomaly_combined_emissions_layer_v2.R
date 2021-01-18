@@ -24,13 +24,13 @@ library(cowplot)
 ##################################################
 ### Combined BC-CO2 emission layer (2000-2017) ###
 ##################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/outputs/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
+load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2
 xlab = "BC + CO2 emission (g m-2)"
 
 ##################################################
 ### Combined BC-CO2 emission layer (1970-2018) ###
 ##################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/outputs/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
+load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
 xlab = "BC + CO2 emission (kg m-2)"
@@ -39,9 +39,9 @@ bco2*1000
 ##################################################################################################
 ### Combined CO2+BC+CH$+N2O emission layer (1970-2018) adjusted by average GWP20-100 yrs value ###
 ##################################################################################################
-load(paste0("/Users/", dir, "/clim_geo_disp/outputs/BC_CO2_CH4_N2O_Combined_1970-2018.RData"))     #BC+CO2+CH4+N2O
-load(paste0("/Users/", dir, "/clim_geo_disp/outputs/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O+NO2
-load(paste0("/Users/", dir, "/clim_geo_disp/outputs/CO2_CH4_N2O_Combined_1970-2018.RData"))        #CO2+CH4+N2O
+load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/BC_CO2_CH4_N2O_Combined_1970-2018.RData"))     #BC+CO2+CH4+N2O
+load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/BC_CO2_CH4_N2O_NO2_Combined_1970-2018.RData")) #BC+CO2+CH4+N2O+NO2
+load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/CO2_CH4_N2O_Combined_1970-2018.RData"))        #CO2+CH4+N2O
 
 ge = resample(ge, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = ge
@@ -85,9 +85,9 @@ scenario = function(clim_anom, rcp, variable){
   
   clim_anom = c("ensemble_1", "ensemble_2")[2]
   rcp = c("RCP4.5", "RCP8.5")[1]
-  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
+  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
 
-  setwd(paste0("/Users/", dir, "/clim_geo_disp/data"))
+  setwd(paste0("/Users/", dir, "/climate_geographic_disparity/data"))
   
   #CMIP5 ENSMN based anomalies
   if (clim_anom == "ensemble_1") anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " ", variable, " (2006-2055)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2050-2099)-(1956-2005)
@@ -457,7 +457,7 @@ scenario = function(clim_anom, rcp, variable){
   ### Terrestorial Biomes ###
   ###########################
   
-  shape <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/TEOW"), layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
+  shape <- readOGR(dsn = paste0("/Users/", dir, "/climate_geographic_disparity/data/TEOW"), layer = "wwf_terr_ecos")  # read the shapefile in by name not the lack of .shp extension
   
   # shape <- ms_simplify(shape, keep = 0.0001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape <- shape %>% st_as_sf()  
@@ -497,14 +497,14 @@ scenario = function(clim_anom, rcp, variable){
   #####################
   
   #shape <- readOGR(dsn = "./data/summarization/MEOW", layer = "meow_ecos") # read the shapefile in by name not the lack of .shp extension
-  shape_MEOW <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/MEOW_2"), layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
+  shape_MEOW <- readOGR(dsn = paste0("/Users/", dir, "/climate_geographic_disparity/data/MEOW_2"), layer = "WCMC-036-MEOW-PPOW-2007-2012-NoCoast")  
   
   # shape_MEOW <- ms_simplify(shape_MEOW, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   shape_MEOW <- shape_MEOW %>% st_as_sf()  
   
   # clip out marine ecoregions overlapping on land
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
-  load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
+  load(paste0("/Users/", dir, "/climate_geographic_disparity/data/land_ocean_df.RData"))
   land <- land %>% st_set_precision(1000000) %>% lwgeom::st_make_valid()
   shape_MEOW <- st_difference(shape_MEOW, st_union(land))
   
@@ -531,7 +531,7 @@ scenario = function(clim_anom, rcp, variable){
   ##########################
   
   #EEZ land_union shapefile
-  eez_land <- readOGR(dsn = paste0("/Users/", dir, "/clim_geo_disp/data/EEZ_land_union"), layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
+  eez_land <- readOGR(dsn = paste0("/Users/", dir, "/climate_geographic_disparity/data/EEZ_land_union"), layer = "EEZ_land_v2_201410")  # read the shapefile in by name not the lack of .shp extension
   
   # eez_land <- ms_simplify(eez_land, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   
@@ -558,7 +558,7 @@ scenario = function(clim_anom, rcp, variable){
   ### Anthromes Biomes ###
   ########################
   
-  load(paste0("/Users/", dir, "/clim_geo_disp/data/anthrome_1.RData"))
+  load(paste0("/Users/", dir, "/climate_geographic_disparity/data/anthrome_1.RData"))
   
   # anthrome <- ms_simplify(anthrome, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   anthrome <- anthrome %>% st_as_sf() 
@@ -600,7 +600,7 @@ scenario = function(clim_anom, rcp, variable){
   
   # ocean <- ne_download(type = "ocean", category = 'physical', returnclass = "sf") 
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf") 
-  load(paste0("/Users/", dir, "/clim_geo_disp/data/land_ocean_df.RData"))
+  load(paste0("/Users/", dir, "/climate_geographic_disparity/data/land_ocean_df.RData"))
   
   land <- ms_simplify(land, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
   ocean <- ms_simplify(ocean, keep = 0.001, keep_shapes = F) # simplify shapefile (saves computing time)
