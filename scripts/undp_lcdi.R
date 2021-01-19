@@ -12,14 +12,22 @@ rm(list = ls())
 
 dir = Sys.info()[7]
 
-###########################
-### import LCDI results ###
-###########################
-load(paste0("/Users/", dir, "/climate_geographic_disparity/data/Disparity_Countries_with_EEZ.RData")) #LCDIs for 192 UN members with EEZ
+################################################
+### import LCDI results                      ###
+### see "generate_LCDI_outputs.R for details ###
+################################################
 
-lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4] ##change this number for different scenario
+LCDI = c("anomalies", "S/N")[1]
 
-lcdi = df3 %>% 
+#LCDIs based on "anomalies" for 192 UN members with EEZ
+if (LCDI == "anomalies") load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/LCDI_Nation_States_with_EEZ_anomaly.Rdata")) 
+
+#LCDIs based on "historical_stdanom" for 192 UN members with EEZ
+if (LCDI == "S/N") load(paste0("/Users/", dir, "/climate_geographic_disparity/outputs/LCDI_Nation_States_with_EEZ_historical_stdanom.RData")) 
+
+lcdi_scenario = c("RCP4.5 2006-2055  ", "RCP4.5 2050-2099  ", "RCP8.5 2006-2055  ", "RCP8.5 2050-2099  ")[4] ## change this for different scenario
+
+lcdi = df %>% 
   subset(outcome %in% lcdi_scenario) %>% #select LCDI scenario
   group_by(unit) %>% 
   summarise(lcdi = mean(mean))
@@ -114,15 +122,15 @@ undp_lcdi_region %>%
   # label every country
   # ggrepel::geom_text_repel(aes(color = Region), show.legend = F) +
   
-  # # label outlier countries + alpha
+  # label outlier countries + alpha
   # stat_dens2d_filter(geom = "text_repel", aes(color = Region), keep.fraction = 0.1) + 
   # ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China")), aes(color = Region), show.legend = F) +
   
   # label mpi outlier countries
   ggrepel::geom_text_repel(data = mpi, aes(color = Region), show.legend = F) +
-  ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China", "Belgium")), aes(color = Region), show.legend = F) +
+  # ggrepel::geom_text_repel(data = subset(undp_lcdi_region, Country %in% c("USA", "China", "Belgium")), aes(color = Region), show.legend = F) +
   
-  stat_smooth(method = "lm", se = F, color = "gray") + 
+  stat_smooth(method = "lm", se = F, color = "gray") +
   coord_fixed(ratio = 10) + 
   scale_color_manual(values = c("#CC004C", "#FCB711", "#0DB14B", "#0089D0", "#6460AA", "#F37021")) + # NBC logo colors
   xlab(paste0("Local Climate Disparity Index ", lcdi_scenario)) + ylab("UNDP Income 1990-2018 (average)") +
