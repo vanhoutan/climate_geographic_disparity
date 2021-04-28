@@ -505,7 +505,7 @@ scenario = function(clim_anom, rcp, variable){
   # clip out marine ecoregions overlapping on land
   # land <- ne_download(type = "land", category = 'physical', returnclass = "sf")
   load(paste0("/Users/", dir, "/climate_geographic_disparity/data/land_ocean_df.RData"))
-  land <- land %>% st_set_precision(1000000) %>% lwgeom::st_make_valid()
+  land <- land %>% st_set_precision(1000000) %>% sf::st_make_valid()
   shape_MEOW <- st_difference(shape_MEOW, st_union(land))
   
   # find intersections with disparity
