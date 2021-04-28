@@ -4,7 +4,7 @@ library(ggpubr)
 
 rm(list = ls())
 
-df <- readr::read_csv("/Users/ktanaka/clim_geo_disp/data/annual-co-emissions-by-region.csv")
+df <- readr::read_csv("~/climate_geographic_disparity/data/annual-co-emissions-by-region.csv")
 
 df$`Annual CO₂ emissions (tonnes )` = df$`Annual CO₂ emissions (tonnes )`
 
