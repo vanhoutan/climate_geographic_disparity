@@ -13,14 +13,14 @@ rcp = c("RCP4.5", "RCP8.5")[1]
 
 if (model_run == "mpi_original") {
   
-  load("~/climate_geographic_disparity/output/intersection_result_BCO2_99perecentile.RData") 
+  load("~/climate_geographic_disparity/outputs/previous results/intersection_result_BCO2_99perecentile.RData") 
   
 } else {
   
   if (model_run == "esn_1") period = "2006-2055"
   if (model_run == "esn_2") period = "2050-2099"
   
-  load(paste0("~/climate_geographic_disparity/output/intersection_result_", period, "_", rcp, "_merra2_edgar_co2.RData"))
+  load(paste0("~/climate_geographic_disparity/outputs/intersection_result_", period, "_", rcp, "_merra2_edgar_co2.RData"))
   
 }
 
