@@ -83,9 +83,9 @@ rm(gpw_pop, gpw_pop1, gpw_pop2, gpw_pop3, gpw_pop4, gpw_pop5)
 
 scenario = function(clim_anom, rcp, variable){
   
-  clim_anom = c("ensemble_1", "ensemble_2")[2]
-  rcp = c("RCP4.5", "RCP8.5")[1]
-  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
+  # clim_anom = c("ensemble_1", "ensemble_2")[2]
+  # rcp = c("RCP4.5", "RCP8.5")[1]
+  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[2]
 
   setwd(paste0("/Users/", dir, "/climate_geographic_disparity/data"))
   
@@ -615,8 +615,8 @@ scenario = function(clim_anom, rcp, variable){
   colnames(land_intersection)
   colnames(ocean_intersection)
   
-  land_intersection = land_intersection[,c("BCE", "anomaly", "ratio", "disparity", "geometry")]
-  ocean_intersection = ocean_intersection[,c("BCE", "anomaly", "ratio", "disparity", "geometry")]
+  land_intersection = land_intersection[,c("BCE", "anomaly", "ratio", "disparity", "featurecla", "geometry")]
+  ocean_intersection = ocean_intersection[,c("BCE", "anomaly", "ratio", "disparity", "featurecla", "geometry")]
   
   earth <- rbind(land_intersection,ocean_intersection)
   
