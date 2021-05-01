@@ -17,7 +17,7 @@ pre_combine = function(rcp, period, variable){
   # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
   scale = c("scaled", "unscaled")[2]
   
-  load(paste0("~/climate_geographic_disparity/outputs/intersection_result_", period, "_", rcp, "_", variable, "_merra2_edgar_ghg.Rdata"))
+  load(paste0("~/climate_geographic_disparity/outputs/ocean_land/intersection_result_", period, "_", rcp, "_", variable, "_merra2_edgar_ghg.Rdata"))
   
   intersection_biome$Outcome = paste0(rcp, " ", period)
   intersection_realm$Outcome = paste0(rcp, " ", period)
@@ -221,18 +221,18 @@ pre_combine = function(rcp, period, variable){
            lower.ci = median - qt(1 - (0.05 / 2), n - 1) * se,
            upper.ci = median + qt(1 - (0.05 / 2), n - 1) * se)
   
-  # #land vs. sea
-  # earth <- earth %>% 
-  #   group_by(featurecla) %>% 
-  #   summarise(median = median(disparity, na.rm = T),
-  #             mean = mean(disparity, na.rm = T),
-  #             q_10 = quantile(disparity, 0.1, na.rm = T),
-  #             q_90 = quantile(disparity, 0.9, na.rm = T),
-  #             sd = sd(disparity, na.rm = T), 
-  #             n = n()) %>%
-  #   mutate(se = sd/sqrt(n),
-  #          lower.ci = median - qt(1 - (0.05 / 2), n - 1) * se,
-  #          upper.ci = median + qt(1 - (0.05 / 2), n - 1) * se)
+  #land vs. sea
+  earth <- earth %>%
+    group_by(featurecla) %>%
+    summarise(median = median(disparity, na.rm = T),
+              mean = mean(disparity, na.rm = T),
+              q_10 = quantile(disparity, 0.1, na.rm = T),
+              q_90 = quantile(disparity, 0.9, na.rm = T),
+              sd = sd(disparity, na.rm = T),
+              n = n()) %>%
+    mutate(se = sd/sqrt(n),
+           lower.ci = median - qt(1 - (0.05 / 2), n - 1) * se,
+           upper.ci = median + qt(1 - (0.05 / 2), n - 1) * se)
   
   #US states
   states <- intersection_states %>% 
@@ -301,7 +301,7 @@ pre_combine = function(rcp, period, variable){
   
   biome = biome %>% st_set_geometry(NULL) # drop geometry
   realm = realm %>% st_set_geometry(NULL) # drop geometry
-  # earth = earth %>% st_set_geometry(NULL) # drop geometry
+  earth = earth %>% st_set_geometry(NULL) # drop geometry
   states = states %>% st_set_geometry(NULL) # drop geometry
   subr = subr %>% st_set_geometry(NULL) # drop geometry
   country = country %>% st_set_geometry(NULL) # drop geometry
@@ -314,14 +314,14 @@ pre_combine = function(rcp, period, variable){
   colnames(country) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); country$type = "Countries_without_EEZ"
   colnames(eez) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); eez$type = "Countries_with_EEZ"
   colnames(states) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); states$type = "US_States"
-  # colnames(earth) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); earth$type = "Land_Sea"
+  colnames(earth) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); earth$type = "Land_Sea"
   colnames(anthrome) = c("unit", "median", "mean", "q_10", "q_90", "sd", "n", "se", "lower.ci", "upper.ci"); anthrome$type = "Anthromes"
   
   df = rbind(biome, realm, states, subr, country, eez, 
-             # earth, 
+             earth,
              anthrome)
   rm(biome, realm, 
-     # earth, 
+     earth,
      states, subr, country, eez, anthrome)
   
   intersection_biome =    intersection_biome[,c("disparity")]; intersection_biome$type = "Land"
@@ -330,7 +330,7 @@ pre_combine = function(rcp, period, variable){
   intersection_world =    intersection_world[,c("disparity")]; intersection_world$type = "Countries_without_EEZ"
   intersection_land_eez = intersection_land_eez[,c("disparity")]; intersection_land_eez$type = "Countries_with_EEZ"
   intersection_states =   intersection_states[,c("disparity")]; intersection_states$type = "US_States"
-  # intersection_earth = rbind(intersection_biome[,c("disparity")], intersection_realm[,c("disparity")]); intersection_earth$type = "Land_Sea"
+  intersection_earth = rbind(intersection_biome[,c("disparity")], intersection_realm[,c("disparity")]); intersection_earth$type = "Land_Sea"
   intersection_anthromes = intersection_anthromes[,c("disparity")]; intersection_anthromes$type = "Anthropogenic_Biomes"
   
   baseline = rbind(intersection_biome, intersection_realm, intersection_subr, intersection_world, intersection_land_eez, intersection_states, intersection_anthromes)
@@ -370,30 +370,35 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   df$type = ifelse(df$type %in% c("Land", "Ocean"), "Ecoregions", df$type)
   df$type = ifelse(df$type %in% c("Global_Subregions"), "Political_regions", df$type)
   df$type = ifelse(df$type %in% c("Countries_with_EEZ"), "Nation_states", df$type) # choose between "Countries_without_EEZ" or "Countries_with_EEZ"
+  df$type = ifelse(df$type %in% c("Land_Sea"), "Land_Sea", df$type) 
   
   df1 = subset(df, type == "Ecoregions")
   df2 = subset(df, type == "Political_regions")
   df3 = subset(df, type == "Nation_states")
   df4 = subset(df, type == "US_States")
   df5 = subset(df, type == "Anthromes")
+  df6 = subset(df, type == "Land_Sea")
   
   df1 = aggregate(df1[, 2:5], list(df1$unit), mean)
   df2 = aggregate(df2[, 2:5], list(df2$unit), mean)
   df3 = aggregate(df3[, 2:5], list(df3$unit), mean)
   df4 = aggregate(df4[, 2:5], list(df4$unit), mean)
   df5 = aggregate(df5[, 2:5], list(df5$unit), mean)
+  df6 = aggregate(df6[, 2:5], list(df6$unit), mean)
   
   colnames(df1)[1] = "unit"
   colnames(df2)[1] = "unit"
   colnames(df3)[1] = "unit"
   colnames(df4)[1] = "unit"
   colnames(df5)[1] = "unit"
+  colnames(df6)[1] = "unit"
   
   df1$category = "Ecoregions"
   df2$category = "Political_regions"
   df3$category = "Nation_states"
   df4$category = "US_states"
   df5$category = "Anthropogenic_biome"
+  df6$category = "Land_Sea"
   
   if (var == "median") {
     
@@ -402,7 +407,9 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     df3$Disparity = df3$median
     df4$Disparity = df4$median
     df5$Disparity = df5$median
-
+    df6$Disparity = df6$median
+    
+    
   } else {
     
     df1$Disparity = df1$q_10
@@ -410,6 +417,8 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     df3$Disparity = df3$q_10
     df4$Disparity = df4$q_10
     df5$Disparity = df5$q_10
+    df6$Disparity = df6$q_10
+    
     
   }
   
@@ -418,6 +427,8 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
   Nation_states_median =     median(df3$Disparity)
   US_states_median =         median(df4$Disparity)
   Anthromes_median =         median(df5$Disparity)
+  Land_Sea_median =          median(df6$Disparity)
+  
   
   top = df1 %>% top_n(8, Disparity)
   bottom = df1 %>% top_n(-8, Disparity)
@@ -446,25 +457,28 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     library(ggthemes)
     
     ifelse(x == 0, "0", parse(text = gsub("[+]", "", gsub("e", " %*% 10^", scientific_format()(x)))))
-  
+    
   }
   
-  df = rbind(df1, df2, df3, df4, df5)
+  df = rbind(df1, df2, df3, df4, df5, df6)
   
   disparity_limits = c(-max(abs(df$Disparity)), max(abs(df$Disparity)))
   # disparity_limits = c(min(df$Disparity), max(df$Disparity))
-
-  category_list = c("Ecoregions", "Political_regions", "Nation_states", "US_states", "Anthropogenic_biome")
+  
+  category_list = c("Ecoregions", "Political_regions", "Nation_states", "US_states", "Anthropogenic_biome", "Land_Sea")
   
   plot_list = list()
   
   for (i in 1:length(category_list)) {
+    
+    # i = 6
     
     if (category_list[i] == "Ecoregions") m = Ecoregion_median
     if (category_list[i] == "Political_regions") m = Political_regions_median
     if (category_list[i] == "Nation_states") m = Nation_states_median
     if (category_list[i] == "US_states") m = US_states_median
     if (category_list[i] == "Anthropogenic_biome") m = Anthromes_median
+    if (category_list[i] == "Land_Sea") m = Land_Sea_median
     
     p = subset(df, category == category_list[i]) %>% 
       mutate(unit = fct_reorder(unit, Disparity)) %>% 
@@ -523,25 +537,22 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     #          vjust = -0.2,
     #          label =  "\n Future period = 2006-2055 & 2050-2099 \n Experiment = rcp 4.5 & 8.5")
     
-    
-    
     if (i %in% c(3,4)) {
       
-      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 8, width = 6)
+      pdf(paste0("~/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 8, width = 6)
       p = p + theme(legend.position = "right")
       print(p)
       dev.off()    
       
     } else {
       
-      pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 4, width = 6)
+      pdf(paste0("~/Desktop/Figure_3_", var, "_", category_list[i], ".pdf"), height = 4, width = 6)
       p = p + theme(legend.position = "right")
       print(p)
-      dev.off()      
+      dev.off()  
+      
     }
     
-    
-
     
     if (i == 4) {
       
@@ -557,7 +568,7 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
     
   }
   
-  pdf(paste0("/Users/ktanaka/Desktop/Figure_3_", var, ".pdf"), h = h, w = w)
+  pdf(paste0("~/Desktop/Figure_3_", var, ".pdf"), h = h, w = w)
   
   # p = ggdraw() +
   #   draw_plot(plot_list[[3]], x = 0, y = 0, width = 0.3, height = 0.98) +
@@ -584,7 +595,6 @@ plot_ranking_tobether = function(h, w, col_size, segment_size, font_size, var){
 
 plot_ranking_tobether(12, 20, 4, 2, 18, "median")
 plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
-plot_ranking_tobether(16, 20, 4, 2, 18, "q_10")
 
 plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   
@@ -600,44 +610,51 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   df$type = ifelse(df$type %in% c("Land", "Ocean"), "Ecoregions", df$type)
   df$type = ifelse(df$type %in% c("Global_Subregions"), "Political_regions", df$type)
   df$type = ifelse(df$type %in% c("Countries_with_EEZ"), "Nation_states", df$type) # choose between "Countries_without_EEZ" or "Countries_with_EEZ"
+  df$type = ifelse(df$type %in% c("Land_Sea"), "Land_Sea", df$type) 
   
   df1 = subset(df, type == "Ecoregions")
   df2 = subset(df, type == "Political_regions")
   df3 = subset(df, type == "Nation_states")
   df4 = subset(df, type == "US_States")
   df5 = subset(df, type == "Anthromes")
+  df6 = subset(df, type == "Land_Sea")
   
   t1 = df1
   t2 = df2
   t3 = df3
   t4 = df4
   t5 = df5
+  t6 = df6
   
   colnames(t1) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t2) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t3) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t4) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   colnames(t5) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
+  colnames(t6) = c("Unit", "Median", "Mean", "10th quantile", "90th quantile", "SD", "n", "SE", "lower.CI", "upper.CI", "type", "Scenario")
   
   df1 = aggregate(df1[, 2:5], list(df1$unit), mean)
   df2 = aggregate(df2[, 2:5], list(df2$unit), mean)
   df3 = aggregate(df3[, 2:5], list(df3$unit), mean)
   df4 = aggregate(df4[, 2:5], list(df4$unit), mean)
   df5 = aggregate(df5[, 2:5], list(df5$unit), mean)
+  df6 = aggregate(df6[, 2:5], list(df6$unit), mean)
   
   colnames(df1)[1] = "unit"
   colnames(df2)[1] = "unit"
   colnames(df3)[1] = "unit"
   colnames(df4)[1] = "unit"
   colnames(df5)[1] = "unit"
-
+  colnames(df6)[1] = "unit"
+  
   df1$category = "Ecoregions"
   df2$category = "Political_regions"
   df3$category = "Nation_states"
   df4$category = "US_States"
   df5$category = "Anthromes"
+  df6$category = "Land_Sea"
   
-  df = rbind(df1, df2, df3, df4, df5)
+  df = rbind(df1, df2, df3, df4, df5, df6)
   
   if (stat == "median") {
     
@@ -670,7 +687,7 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   if (var %in% c("Nation_states")) {
     
     df <- within(df, group <- as.integer(cut(Disparity*-1, quantile(Disparity*-1, probs=0:6/6), include.lowest = TRUE)))
-
+    
   }
   
   p = subset(df) %>% 
@@ -760,7 +777,7 @@ plot_ranking = function(var, h, w, col_size, segment_size, font_size, n, stat) {
   # write_csv(t2, paste0("/Users/ktanaka/Desktop/Political_regions_summary.csv"))
   # write_csv(t3, paste0("/Users/ktanaka/Desktop/Nation_states_summary.csv"))
   # write_csv(t4, paste0("/Users/ktanaka/Desktop/US_states_summary.csv"))
-
+  
 }
 
 plot_ranking(var = "Ecoregions",        h = 5, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
@@ -768,4 +785,4 @@ plot_ranking(var = "Political_regions", h = 4, w = 6, col_size = 3, segment_size
 plot_ranking(var = "Nation_states",     h = 12, w = 10, col_size = 3, segment_size = 1, font_size = 10, n = 5, stat = "q_10")
 plot_ranking(var = "US_States",         h = 7, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
 plot_ranking(var = "Anthromes",         h = 4, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
- 
+plot_ranking(var = "Land_Sea",         h = 3, w = 6, col_size = 3, segment_size = 1, font_size = 8, n = 5, stat = "q_10")
