@@ -16,12 +16,12 @@ dir = Sys.info()[7]
 
 pre_combine = function(rcp, period, variable){
   
-  # rcp = c("RCP4.5", "RCP8.5")[2]
-  # period = c("2006-2055", "2050-2099")[2]
-  # variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
+  rcp = c("RCP4.5", "RCP8.5")[2]
+  period = c("2006-2055", "2050-2099")[2]
+  variable = c("anomaly", "historical stdanom", "ensemble stdanom")[1]
   scale = c("scaled", "unscaled")[2]
   
-  load(paste0("~/climate_geographic_disparity/outputs/intersection_result_", period, "_", rcp, "_", variable, "_merra2_edgar_ghg.Rdata"))
+  load(paste0("~/climate_geographic_disparity/outputs/ocean_land/intersection_result_", period, "_", rcp, "_", variable, "_merra2_edgar_ghg.Rdata"))
   
   intersection_biome$Outcome = paste0(rcp, " ", period)
   intersection_realm$Outcome = paste0(rcp, " ", period)

@@ -14,7 +14,7 @@ period = c("2006-2055", "2050-2099")[2]
 scale = c("scaled", "unscaled")[2]
 variable = c("anomaly", "historical stdanom")[1]
 
-load(paste0("~/climate_geographic_disparity/output/intersection_result_", period, "_", rcp, "_", variable, data, ".Rdata"))
+load(paste0("~/climate_geographic_disparity/outputs/intersection_result_", period, "_", rcp, "_", variable, data, ".Rdata"))
 
 df = subset(intersection_world, geounit %in% c("China", "Greenland", "India"))
 
