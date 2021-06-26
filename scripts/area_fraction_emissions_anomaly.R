@@ -20,12 +20,12 @@ library(colortools)
 library(viridis)
 library(ggdark)
 
-load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2 2000-2017
-load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2 1970-2018
+load(paste0("/Users/", Sys.info()[7], "/climate_geographic_disparity/outputs/previous results/BC-CO2_Combined_2000-2017.RData")) #BC + CO2 2000-2017
+load(paste0("/Users/", Sys.info()[7], "/climate_geographic_disparity/outputs/previous results/BC-CO2_Combined_1970-2018.RData")) #BC + CO2 1970-2018
 bc_co2_adjusted = resample(bc_co2_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_adjusted
 bco2*1000
-load(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/output/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC + CO2
+load(paste0("/Users/", Sys.info()[7], "/climate_geographic_disparity/outputs/BC_CO2_CH4_N2O_Combined_1970-2018.RData")) #BC + CO2
 bc_co2_ch4_n2o_adjusted = resample(bc_co2_ch4_n2o_adjusted, bco2, method = "bilinear") #use bilinear interpolation method to resample layer on 1 by 1 deg grid
 bco2 = bc_co2_ch4_n2o_adjusted
 bco2 = bco2 * 31556952 #31556952 seconds in one Gregorian calendar year (365.2425 days)
@@ -66,7 +66,7 @@ p1 = ggplot(df %>% sample_frac(0.1), aes(cum_area, cum_emission, color = cum_emi
 
 clim_anom = "ensemble_2"
 rcp = "RCP8.5"
-setwd(paste0("/Users/", Sys.info()[7], "/clim_geo_disp/data"))
+setwd(paste0("/Users/", Sys.info()[7], "/climate_geographic_disparity/data"))
 anomaly = stack(paste0("CMIP5 ENSMN ", rcp, " anomaly (2050-2099)-(1956-2005).nc"), varname = "anomaly") #RCP8.5 or 4.5 anomaly (2006-2055)-(1956-2005)
 anomaly <- spatial_sync_raster(anomaly, bco2, method = "ngb", size_only = F, verbose = T)
 anomaly <- abs(anomaly) # make absolute or not absolute anomally
