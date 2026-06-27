@@ -1,5 +1,3 @@
-![Local Climate Disparity Index — global map of historical greenhouse emissions versus projected 21st-century warming](header.png)
-
 # climate_geographic_disparity
 
 Data and code for **"The geographic disparity of historical greenhouse emissions and projected climate change,"** published open access in *Science Advances* (2021).
@@ -20,6 +18,10 @@ One challenge in climate change communication is that the causes and impacts of 
 ---
 
 ## The Local Climate Disparity Index (LCDI)
+
+<p align="center">
+  <img src="header.png" width="75%" alt="Local Climate Disparity Index — global map of historical greenhouse emissions versus projected 21st-century warming">
+</p>
 
 The LCDI quantifies, for every 1° × 1° cell of the planet, the local mismatch between *who emits* and *who warms*. It is computed as the perpendicular distance of each cell from the diagonal of the emissions–temperature relationship (see `scripts/clean_scripts/2_Calculate_LCDI.R`):
 
